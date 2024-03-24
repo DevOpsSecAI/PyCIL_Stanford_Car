@@ -23,10 +23,14 @@ def _train(args):
 
     init_cls = 0 if args ["init_cls"] == args["increment"] else args["init_cls"]
     logs_name = "logs/{}/{}/{}/{}".format(args["model_name"],args["dataset"], init_cls, args['increment'])
-    
+
     if not os.path.exists(logs_name):
         os.makedirs(logs_name)
 
+    save_name = "models/{}/{}/{}/{}".format(args["model_name"],args["dataset"], init_cls, args['increment'])
+
+    if not os.path.exists(save_name):
+        os.makedirs(save_name)
     logfilename = "logs/{}/{}/{}/{}/{}_{}_{}".format(
         args["model_name"],
         args["dataset"],
@@ -117,7 +121,7 @@ def _train(args):
 
             print('Average Accuracy (CNN):', sum(cnn_curve["top1"])/len(cnn_curve["top1"]))
             logging.info("Average Accuracy (CNN): {}".format(sum(cnn_curve["top1"])/len(cnn_curve["top1"])))
-
+        model.save_checkpoint(task)
 
     if len(cnn_matrix)>0:
         np_acctable = np.zeros([task + 1, task + 1])
@@ -141,7 +145,6 @@ def _train(args):
         print(np_acctable)
         print('Forgetting (NME):', forgetting)
         logging.info('Forgetting (NME):', forgetting)
-
 
 def _set_device(args):
     device_type = args["device"]
