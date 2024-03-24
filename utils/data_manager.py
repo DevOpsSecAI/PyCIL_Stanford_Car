@@ -3,7 +3,7 @@ import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
-from utils.data import iCIFAR10, iCIFAR100, iImageNet100, iImageNet1000
+from utils.data import iCIFAR10, iCIFAR100, iImageNet100, iImageNet1000, StanfordCar
 from tqdm import tqdm
 
 class DataManager(object):
@@ -24,10 +24,10 @@ class DataManager(object):
 
     def get_task_size(self, task):
         return self._increments[task]
-    
+
     def get_accumulate_tasksize(self,task):
         return sum(self._increments[:task+1])
-    
+
     def get_total_classnum(self):
         return len(self._class_order)
 
@@ -81,7 +81,7 @@ class DataManager(object):
         else:
             return DummyDataset(data, targets, trsf, self.use_path)
 
-        
+
     def get_finetune_dataset(self,known_classes,total_classes,source,mode,appendent,type="ratio"):
         if source == 'train':
             x, y = self._train_data, self._train_targets
@@ -191,7 +191,6 @@ class DataManager(object):
         self._train_data, self._train_targets = idata.train_data, idata.train_targets
         self._test_data, self._test_targets = idata.test_data, idata.test_targets
         self.use_path = idata.use_path
-
         # Transforms
         self._train_trsf = idata.train_trsf
         self._test_trsf = idata.test_trsf
@@ -215,7 +214,7 @@ class DataManager(object):
 
     def _select(self, x, y, low_range, high_range):
         idxes = np.where(np.logical_and(y >= low_range, y < high_range))[0]
-        
+
         if isinstance(x,np.ndarray):
             x_return = x[idxes]
         else:
@@ -277,15 +276,13 @@ def _get_idata(dataset_name):
         return iImageNet1000()
     elif name == "imagenet100":
         return iImageNet100()
+    elif name == 'stanfordcar':
+        return StanfordCar()
     else:
         raise NotImplementedError("Unknown dataset {}.".format(dataset_name))
 
 
 def pil_loader(path):
-    """
-    Ref:
-    https://pytorch.org/docs/stable/_modules/torchvision/datasets/folder.html#ImageFolder
-    """
     # open path as file to avoid ResourceWarning (https://github.com/python-pillow/Pillow/issues/835)
     with open(path, "rb") as f:
         img = Image.open(f)
@@ -293,12 +290,6 @@ def pil_loader(path):
 
 
 def accimage_loader(path):
-    """
-    Ref:
-    https://pytorch.org/docs/stable/_modules/torchvision/datasets/folder.html#ImageFolder
-    accimage is an accelerated Image loader and preprocessor leveraging Intel IPP.
-    accimage is available on conda-forge.
-    """
     import accimage
 
     try:
@@ -309,10 +300,6 @@ def accimage_loader(path):
 
 
 def default_loader(path):
-    """
-    Ref:
-    https://pytorch.org/docs/stable/_modules/torchvision/datasets/folder.html#ImageFolder
-    """
     from torchvision import get_image_backend
 
     if get_image_backend() == "accimage":
