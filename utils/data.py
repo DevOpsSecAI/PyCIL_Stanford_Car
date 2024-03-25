@@ -70,9 +70,10 @@ class iCIFAR100(iData):
 class iImageNet1000(iData):
     use_path = True
     train_trsf = [
-        transforms.RandomResizedCrop(224),
+        transforms.Resize((self.image_size, self.image_size)),
         transforms.RandomHorizontalFlip(),
-        transforms.ColorJitter(brightness=63 / 255),
+        transforms.RandomAffine(25, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=8),
+        transforms.ColorJitter(),
     ]
     test_trsf = [
         transforms.Resize(256),
@@ -80,7 +81,10 @@ class iImageNet1000(iData):
     ]
     common_trsf = [
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        transforms.Normalize(
+                mean=[0.470, 0.460, 0.455],
+                std=[0.267, 0.266, 0.270]
+            ),
     ]
 
     class_order = np.arange(1000).tolist()
@@ -101,16 +105,22 @@ class StanfordCar(iData):
     use_path = True
     train_trsf = [
         transforms.Resize(320),
-        transforms.CenterCrop(320),    ]
+        transforms.CenterCrop(320),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomAffine(25, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=8),
+        transforms.ColorJitter(),
+    ]
     test_trsf = [
         transforms.Resize(320),
         transforms.CenterCrop(320),
     ]
     common_trsf = [
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        transforms.Normalize(
+                mean=[0.470, 0.460, 0.455],
+                std=[0.267, 0.266, 0.270]
+            ),
     ]
-
     class_order = np.arange(196).tolist()
     def download_data(self):
         path = '/content/car_data/car_data'
