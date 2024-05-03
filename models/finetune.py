@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 import torch
+import copy
 from torch import nn
 from torch.serialization import load
 from tqdm import tqdm
@@ -12,9 +13,9 @@ from models.base import BaseLearner
 from utils.toolkit import target2onehot, tensor2numpy
 
 
-init_epoch = 200
+init_epoch = 100
 init_lr = 0.1
-init_milestones = [60, 120, 170]
+init_milestones = [40, 60, 80]
 init_lr_decay = 0.1
 init_weight_decay = 0.0005
 
@@ -23,7 +24,7 @@ epochs = 80
 lrate = 0.1
 milestones = [40, 70]
 lrate_decay = 0.1
-batch_size = 128
+batch_size = 32
 weight_decay = 2e-4
 num_workers = 8
 
@@ -35,6 +36,22 @@ class Finetune(BaseLearner):
 
     def after_task(self):
         self._known_classes = self._total_classes
+        
+    def save_checkpoint(self, test_acc):
+        assert self.args['model_name'] == 'finetune'
+        checkpoint_name = f"models/finetune/{self.args['csv_name']}"
+        _checkpoint_cpu = copy.deepcopy(self._network)
+        if isinstance(_checkpoint_cpu, nn.DataParallel):
+            _checkpoint_cpu = _checkpoint_cpu.module
+        _checkpoint_cpu.cpu()
+        save_dict = {
+            "tasks": self._cur_task,
+            "convnet": _checkpoint_cpu.convnet.state_dict(),
+            "fc":_checkpoint_cpu.fc.state_dict(),
+            "test_acc": test_acc
+        }
+        torch.save(save_dict, "{}_{}.pkl".format(checkpoint_name, self._cur_task))
+    
 
     def incremental_train(self, data_manager):
         self._cur_task += 1

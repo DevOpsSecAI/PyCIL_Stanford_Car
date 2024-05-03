@@ -422,9 +422,9 @@ class SimpleCosineIncrementalNet(BaseNet):
             fc.sigma.data = self.fc.sigma.data
             if nextperiod_initialization is not None:
 
-                weight = torch.cat([weight, nextperiod_initialization])
+                weight = torch.cat([weight.cuda(), nextperiod_initialization.cuda()])
             else:
-                weight = torch.cat([weight, torch.zeros(nb_classes - nb_output, self.feature_dim).cuda()])
+                weight = torch.cat([weight.cuda(), torch.zeros(nb_classes - nb_output, self.feature_dim).cuda()])
             fc.weight = nn.Parameter(weight)
         del self.fc
         self.fc = fc
@@ -610,7 +610,7 @@ class BEEFISONet(nn.Module):
                 new_fc_bias = torch.cat([*[self.biases[i](self.backward_prototypes.bias[i].unsqueeze(0),bias=True) for _ in range(self.task_sizes[i])], new_fc_bias])
             fc_weight = torch.cat([fc_weight,new_fc_weight],dim=1)
             fc_bias = torch.cat([self.old_fc.bias,torch.zeros(new_task_size).cuda()])
-            fc_bias=+new_fc_bias
+            fc_bias+=new_fc_bias
             logits = features@fc_weight.permute(1,0)+fc_bias
             out = {"logits":logits}        
 
@@ -693,10 +693,13 @@ class AdaptiveNet(nn.Module):
     def __init__(self, args, pretrained):
         super(AdaptiveNet, self).__init__()
         self.convnet_type = args["convnet_type"]
-        self.TaskAgnosticExtractor , _ = get_convnet(args, pretrained) #Generalized blocks
+        self.TaskAgnosticExtractor , _network = get_convnet(args, pretrained) #Generalized blocks
         self.TaskAgnosticExtractor.train()
         self.AdaptiveExtractors = nn.ModuleList() #Specialized Blocks
+        self.AdaptiveExtractors.append(_network)
         self.pretrained=pretrained
+        if args["backbone"] != None and pretrained == True:
+            self.load_checkpoint(args)
         self.out_dim=None
         self.fc = None
         self.aux_fc=None
@@ -779,18 +782,7 @@ class AdaptiveNet(nn.Module):
         self.fc.weight.data[-increment:,:]*=gamma
     
     def load_checkpoint(self, args):
-        if args["init_cls"] == 50:
-            pkl_name = "{}_{}_{}_B{}_Inc{}".format( 
-                args["dataset"],
-                args["seed"],
-                args["convnet_type"],
-                0,
-                args["init_cls"],
-            )
-            checkpoint_name = f"checkpoints/finetune_{pkl_name}_0.pkl"
-        else:
-            checkpoint_name = f"checkpoints/finetune_{args['csv_name']}_0.pkl"
-        checkpoint_name = checkpoint_name.replace("memo_", "")
+        checkpoint_name = args["backbone"]
         model_infos = torch.load(checkpoint_name)
         model_dict = model_infos['convnet']
         assert len(self.AdaptiveExtractors) == 1
@@ -815,6 +807,6 @@ class AdaptiveNet(nn.Module):
 
         self.TaskAgnosticExtractor.load_state_dict(base_state_dict)
         self.AdaptiveExtractors[0].load_state_dict(adap_state_dict)
-        self.fc.load_state_dict(model_infos['fc'])
+        #self.fc.load_state_dict(model_infos['fc'])
         test_acc = model_infos['test_acc']
         return test_acc

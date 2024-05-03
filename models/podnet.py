@@ -9,11 +9,11 @@ from models.base import BaseLearner
 from utils.inc_net import CosineIncrementalNet
 from utils.toolkit import tensor2numpy
 
-epochs = 160
+epochs = 100
 lrate = 0.1
 ft_epochs = 20
 ft_lrate = 0.005
-batch_size = 128
+batch_size = 32
 lambda_c_base = 5
 lambda_f_base = 1
 nb_proxy = 10

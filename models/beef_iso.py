@@ -146,7 +146,11 @@ class BEEFISO(BaseLearner):
             
             self.epochs = self.args["expansion_epochs"]
             self.state = "expansion"
-            for p in self._network.biases.parameters():
+            if len(self._multiple_gpus) > 1:
+                network = self._network.module
+            else:
+                network = self._network
+            for p in network.biases.parameters():
                 p.requires_grad = False
             self._expansion(train_loader, test_loader, optimizer, scheduler)
             
@@ -242,6 +246,7 @@ class BEEFISO(BaseLearner):
                 inputs, targets = inputs.to(
                     self._device, non_blocking=True
                 ), targets.to(self._device, non_blocking=True)
+                targets = targets.float()
                 outputs = self._network(inputs)
                 logits,train_logits = (
                     outputs["logits"],
@@ -250,14 +255,14 @@ class BEEFISO(BaseLearner):
                 pseudo_targets = targets.clone()
                 for task_id in range(self._cur_task+1):
                     if task_id == 0:
-                        pseudo_targets = torch.where(targets<self.data_manager.get_accumulate_tasksize(task_id),task_id,pseudo_targets)
+                        pseudo_targets = torch.where(targets<self.data_manager.get_accumulate_tasksize(task_id),torch.Tensor([task_id]).float().to(self._device),pseudo_targets)
                     elif task_id == self._cur_task: 
                         pseudo_targets = torch.where(targets-self._known_classes+1>0,targets-self._known_classes+task_id,pseudo_targets)
                     else:
                         pseudo_targets = torch.where((targets<self.data_manager.get_accumulate_tasksize(task_id)) & (targets>self.data_manager.get_accumulate_tasksize(task_id-1)-1),task_id,pseudo_targets)
                 
                 train_logits[:, list(range(self._cur_task))] /= self.logits_alignment
-                loss_clf = F.cross_entropy(train_logits, pseudo_targets)
+                loss_clf = F.cross_entropy(train_logits.float(), pseudo_targets)
                 loss_fe = torch.tensor(0.).cuda()
                 loss_en = self.args["energy_weight"]  * self.get_energy_loss(inputs,targets,pseudo_targets)
                 loss = loss_clf + loss_fe + loss_en

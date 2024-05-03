@@ -1,14 +1,14 @@
 {
-    "prefix": "reproduce",
-    "dataset": "cifar100",
+    "prefix": "increment",
+    "dataset": "stanfordcar",
     "memory_size": 2000,
     "memory_per_class": 20,
-    "fixed_memory": false,
+    "fixed_memory": true,
     "shuffle": true,
-    "init_cls": 10,
-    "increment": 10,
+    "init_cls": 20,
+    "increment": 20,
     "model_name": "podnet",
-    "convnet_type": "cosine_resnet32",
-    "device": ["0","1","2","3"],
-    "seed": [1993]
+    "convnet_type": "cosine_resnet18",
+    "device": ["0","1"],
+    "seed": [2003]
 }

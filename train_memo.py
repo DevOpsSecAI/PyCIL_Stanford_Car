@@ -130,31 +130,32 @@ def _train(args):
 
             print('Average Accuracy (CNN):', sum(cnn_curve["top1"])/len(cnn_curve["top1"]))
             logging.info("Average Accuracy (CNN): {}".format(sum(cnn_curve["top1"])/len(cnn_curve["top1"])))
-        #model.save_checkpoint(save_name)
-        if len(cnn_matrix)>0:
-            np_acctable = np.zeros([  task + 1, int((args["init_cls"] // 10) + task * (args["increment"] // 10))])
-            for idxx, line in enumerate(cnn_matrix):
-                idxy = len(line)
-                np_acctable[idxx, :idxy] = np.array(line)
-            np_acctable = np_acctable.T
-            forgetting = np.mean((np.max(np_acctable, axis=1) - np_acctable[:, -1])[:-1])
-            logging.info('Forgetting (CNN): {}'.format(forgetting))
-            logging.info('Accuracy Matrix (CNN): {}'.format(np_acctable))
-            print('Accuracy Matrix (CNN):')
-            print(np_acctable)
-            print('Forgetting (CNN):', forgetting)
-        if len(nme_matrix)>0:
-            np_acctable = np.zeros([ task + 1, int((args["init_cls"] // 10) + task * (args["increment"] // 10))])
-            for idxx, line in enumerate(nme_matrix):
-                idxy = len(line)
-                np_acctable[idxx, :idxy] = np.array(line)
-            np_acctable = np_acctable.T
-            forgetting = np.mean((np.max(np_acctable, axis=1) - np_acctable[:, -1])[:-1])
-            logging.info('Forgetting (NME): {}'.format(forgetting))
-            logging.info('Accuracy Matrix (NME): {}'.format(np_acctable))
-            print('Accuracy Matrix (NME):')
-            print(np_acctable)
-            print('Forgetting (NME):', forgetting)
+        model.save_checkpoint(save_name)
+
+    if len(cnn_matrix)>0:
+        np_acctable = np.zeros([  task + 1, int((args["init_cls"] // 10) + task * (args["increment"] // 10))])
+        for idxx, line in enumerate(cnn_matrix):
+            idxy = len(line)
+            np_acctable[idxx, :idxy] = np.array(line)
+        np_acctable = np_acctable.T
+        forgetting = np.mean((np.max(np_acctable, axis=1) - np_acctable[:, -1])[:-1])
+        logging.info('Forgetting (CNN): {}'.format(forgetting))
+        logging.info('Accuracy Matrix (CNN): {}'.format(np_acctable))
+        print('Accuracy Matrix (CNN):')
+        print(np_acctable)
+        print('Forgetting (CNN):', forgetting)
+    if len(nme_matrix)>0:
+        np_acctable = np.zeros([ task + 1, int((args["init_cls"] // 10) + task * (args["increment"] // 10))])
+        for idxx, line in enumerate(nme_matrix):
+            idxy = len(line)
+            np_acctable[idxx, :idxy] = np.array(line)
+        np_acctable = np_acctable.T
+        forgetting = np.mean((np.max(np_acctable, axis=1) - np_acctable[:, -1])[:-1])
+        logging.info('Forgetting (NME): {}'.format(forgetting))
+        logging.info('Accuracy Matrix (NME): {}'.format(np_acctable))
+        print('Accuracy Matrix (NME):')
+        print(np_acctable)
+        print('Forgetting (NME):', forgetting)
         
 
 def _set_device(args):

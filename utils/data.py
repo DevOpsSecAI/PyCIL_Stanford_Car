@@ -70,7 +70,6 @@ class iCIFAR100(iData):
 class iImageNet1000(iData):
     use_path = True
     train_trsf = [
-        transforms.Resize((self.image_size, self.image_size)),
         transforms.RandomHorizontalFlip(),
         transforms.RandomAffine(25, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=8),
         transforms.ColorJitter(),
@@ -123,9 +122,9 @@ class StanfordCar(iData):
     ]
     class_order = np.arange(196).tolist()
     def download_data(self):
-        path = '/content/car_data/car_data'
-        train_dset = datasets.ImageFolder(os.path.join(path, "test"))
-        test_dset = datasets.ImageFolder(os.path.join(path, "train"))
+        path = './car_data/car_data'
+        train_dset = datasets.ImageFolder(os.path.join(path, "train"))
+        test_dset = datasets.ImageFolder(os.path.join(path, "test"))
         self.train_data, self.train_targets = split_images_labels(train_dset.imgs)
         self.test_data, self.test_targets = split_images_labels(test_dset.imgs)
 

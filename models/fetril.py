@@ -48,11 +48,9 @@ class FeTrIL(BaseLearner):
     def incremental_train(self, data_manager):
         self.data_manager = data_manager
         self.data_manager._train_trsf = [
-        transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
         transforms.ColorJitter(brightness=63/255),
-        CIFAR10Policy(),
-        transforms.ToTensor(),
+        ImageNetPolicy(),
         Cutout(n_holes=1, length=16),
         ]
         self._cur_task += 1
@@ -172,7 +170,7 @@ class FeTrIL(BaseLearner):
                 self._network.eval()
             losses = 0.
             correct, total = 0, 0
-            for i, (_, inputs, targets) in enumerate(train_loader):
+            for i, _, inputs, targets in enumerate(train_loader):
                 inputs, targets = inputs.to(
                     self._device, non_blocking=True), targets.to(self._device, non_blocking=True)
                 if self._cur_task ==0:

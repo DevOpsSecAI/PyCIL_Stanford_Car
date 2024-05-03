@@ -13,7 +13,7 @@ from utils.toolkit import count_parameters, target2onehot, tensor2numpy
 
 num_workers=8
 EPSILON = 1e-8
-batch_size = 64
+batch_size = 32
 
 class MEMO(BaseLearner):
 
@@ -21,7 +21,7 @@ class MEMO(BaseLearner):
         super().__init__(args)
         self.args = args
         self._old_base = None
-        self._network = AdaptiveNet(args, False)
+        self._network = AdaptiveNet(args, True)
         logging.info(f'>>> train generalized blocks:{self.args["train_base"]} train_adaptive:{self.args["train_adaptive"]}')
 
     def after_task(self):
@@ -50,7 +50,7 @@ class MEMO(BaseLearner):
         if self._cur_task>0:
             for i in range(self._cur_task):
                 for p in self._network.AdaptiveExtractors[i].parameters():
-                    if self.args['train_adaptive']:
+                    if self.args['train_adaptive'] and i == self._cur_task:
                         p.requires_grad = True
                     else:
                         p.requires_grad = False
@@ -220,8 +220,8 @@ class MEMO(BaseLearner):
                 logits,aux_logits=outputs["logits"],outputs["aux_logits"]
                 loss_clf=F.cross_entropy(logits,targets)
                 aux_targets = targets.clone()
-                aux_targets=torch.where(aux_targets-self._known_classes+1>0,  aux_targets-self._known_classes+1,0)
-                loss_aux=F.cross_entropy(aux_logits,aux_targets)
+                aux_targets=torch.where(aux_targets-self._known_classes+1.0>0,  aux_targets-self._known_classes+1.0,torch.Tensor([.0]).to(self.args["device"][0]))
+                loss_aux=F.cross_entropy(aux_logits,aux_targets.long())
                 loss=loss_clf+self.args['alpha_aux']*loss_aux
 
                 optimizer.zero_grad()

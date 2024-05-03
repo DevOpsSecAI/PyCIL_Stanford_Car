@@ -16,7 +16,7 @@ import torch.optim as optim
 
 
 EPSILON = 1e-8
-batch_size = 128
+batch_size = 32
 weight_decay = 2e-4
 num_workers = 8
 

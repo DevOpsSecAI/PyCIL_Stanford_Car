@@ -1,5 +1,6 @@
 import logging
 import numpy as np
+import os
 from tqdm import tqdm
 import torch
 from torch import nn
@@ -20,7 +21,7 @@ class SSRE(BaseLearner):
     def __init__(self, args):
         super().__init__(args)
         self.args = args
-        self._network = IncrementalNet(args['convnet_type'], False,args=args)
+        self._network = IncrementalNet(args, False)
         self._protos = []
 
 
@@ -32,7 +33,7 @@ class SSRE(BaseLearner):
             self.old_network_module_ptr = self._old_network.module
         else:
             self.old_network_module_ptr = self._old_network
-        self.save_checkpoint("{}_{}_{}".format(self.args["model_name"],self.args["init_cls"],self.args["increment"]))
+        #self.save_checkpoint("{}_{}_{}".format(self.args["model_name"],self.args["init_cls"],self.args["increment"]))
     def incremental_train(self, data_manager):
         self.data_manager = data_manager
         if self._cur_task == 0:
@@ -41,15 +42,13 @@ class SSRE(BaseLearner):
             transforms.RandomHorizontalFlip(),
             transforms.ColorJitter(brightness=63/255),
             CIFAR10Policy(),
-            transforms.ToTensor(),
             Cutout(n_holes=1, length=16)
             ]
         else:
             self.data_manager._train_trsf = [
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
-            transforms.ColorJitter(brightness=63/255),
-            transforms.ToTensor(),        
+            transforms.ColorJitter(brightness=63/255),      
             ]
         self._cur_task += 1
         self._total_classes = self._known_classes + \
@@ -68,8 +67,7 @@ class SSRE(BaseLearner):
         logging.info('Trainable params: {}'.format(
             count_parameters(self._network, True)))
 
-        train_dataset = data_manager.get_dataset(np.arange(self._known_classes, self._total_classes), source='train',
-                                                 mode='train', appendent=self._get_memory())
+        train_dataset = data_manager.get_dataset(np.arange(self._known_classes, self._total_classes), source='train',mode='train', appendent=self._get_memory())
         if self._cur_task == 0:
             batch_size = 64
         else:
@@ -201,7 +199,7 @@ class SSRE(BaseLearner):
         return logits, loss_clf, loss_fkd, loss_proto
         
     
-    def eval_task(self):
+    def eval_task(self, save_conf=False):
         y_pred, y_true = self._eval_cnn(self.test_loader)
         cnn_accy = self._evaluate(y_pred, y_true)
 
@@ -213,7 +211,18 @@ class SSRE(BaseLearner):
             nme_accy = self._evaluate(y_pred, y_true)            
         else:
             nme_accy = None
+        if save_conf:
+            _pred = y_pred.T[0]
+            _pred_path = os.path.join(self.args['logfilename'], "pred.npy")
+            _target_path = os.path.join(self.args['logfilename'], "target.npy")
+            np.save(_pred_path, _pred)
+            np.save(_target_path, y_true)
 
+            _save_dir = os.path.join(f"./results/{self.args['model_name']}/conf_matrix/{self.args['prefix']}")
+            os.makedirs(_save_dir, exist_ok=True)
+            _save_path = os.path.join(_save_dir, f"{self.args['csv_name']}.csv")
+            with open(_save_path, "a+") as f:
+                f.write(f"{self.args['model_name']},{_pred_path},{_target_path} \n")
         return cnn_accy, nme_accy
     
     def _network_expansion(self):

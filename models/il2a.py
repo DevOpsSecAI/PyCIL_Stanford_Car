@@ -29,7 +29,7 @@ class IL2A(BaseLearner):
             self.old_network_module_ptr = self._old_network.module
         else:
             self.old_network_module_ptr = self._old_network
-        self.save_checkpoint("{}_{}_{}".format(self.args["model_name"],self.args["init_cls"],self.args["increment"]))
+        #self.save_checkpoint("{}_{}_{}".format(self.args["model_name"],self.args["init_cls"],self.args["increment"]))
     def incremental_train(self, data_manager):
         self.data_manager = data_manager
         self._cur_task += 1
@@ -206,7 +206,7 @@ class IL2A(BaseLearner):
         large_targets = torch.max(select_targets,perm_targets)-self._known_classes
         small_targets = torch.min(select_targets,perm_targets)-self._known_classes
 
-        mixup_targets = (large_targets*(large_targets-1)/2  + small_targets + self._total_classes).long()
+        mixup_targets = large_targets*(large_targets-1) // 2 + small_targets + self._total_classes
         return mixup_targets
     def _compute_accuracy(self, model, loader):
         model.eval()
@@ -234,7 +234,7 @@ class IL2A(BaseLearner):
 
         return np.concatenate(y_pred), np.concatenate(y_true)  
     
-    def eval_task(self):
+    def eval_task(self, save_conf=False):
         y_pred, y_true = self._eval_cnn(self.test_loader)
         cnn_accy = self._evaluate(y_pred, y_true)
 
@@ -246,5 +246,5 @@ class IL2A(BaseLearner):
             nme_accy = self._evaluate(y_pred, y_true)            
         else:
             nme_accy = None
-
+          
         return cnn_accy, nme_accy

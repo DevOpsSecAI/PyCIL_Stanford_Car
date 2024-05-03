@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 from tqdm import tqdm
+import os
 import torch
 from torch import nn
 from torch import optim
@@ -30,7 +31,7 @@ class PASS(BaseLearner):
             self.old_network_module_ptr = self._old_network.module
         else:
             self.old_network_module_ptr = self._old_network
-        self.save_checkpoint("{}_{}_{}".format(self.args["model_name"],self.args["init_cls"],self.args["increment"]))
+        #self.save_checkpoint("{}_{}_{}".format(self.args["model_name"],self.args["init_cls"],self.args["increment"]))
     def incremental_train(self, data_manager):
         self.data_manager = data_manager
         self._cur_task += 1
@@ -105,7 +106,7 @@ class PASS(BaseLearner):
                 inputs, targets = inputs.to(
                     self._device, non_blocking=True), targets.to(self._device, non_blocking=True)
                 inputs = torch.stack([torch.rot90(inputs, k, (2, 3)) for k in range(4)], 1)
-                inputs = inputs.view(-1, 3, 32, 32)
+                inputs = inputs.view(-1, 3, 320, 320)
                 targets = torch.stack([targets * 4 + k for k in range(4)], 1).view(-1)
                 logits, loss_clf, loss_fkd, loss_proto = self._compute_pass_loss(inputs,targets)
                 loss = loss_clf + loss_fkd + loss_proto
@@ -188,7 +189,7 @@ class PASS(BaseLearner):
 
         return np.concatenate(y_pred), np.concatenate(y_true)  
     
-    def eval_task(self):
+    def eval_task(self, save_conf=True):
         y_pred, y_true = self._eval_cnn(self.test_loader)
         cnn_accy = self._evaluate(y_pred, y_true)
 
@@ -200,5 +201,16 @@ class PASS(BaseLearner):
             nme_accy = self._evaluate(y_pred, y_true)            
         else:
             nme_accy = None
+        if save_conf:
+            _pred = y_pred.T[0]
+            _pred_path = os.path.join(self.args['logfilename'], "pred.npy")
+            _target_path = os.path.join(self.args['logfilename'], "target.npy")
+            np.save(_pred_path, _pred)
+            np.save(_target_path, y_true)
 
+            _save_dir = os.path.join(f"./results/{self.args['model_name']}/conf_matrix/{self.args['prefix']}")
+            os.makedirs(_save_dir, exist_ok=True)
+            _save_path = os.path.join(_save_dir, f"{self.args['csv_name']}.csv")
+            with open(_save_path, "a+") as f:
+                f.write(f"{self.args['model_name']},{_pred_path},{_target_path} \n")
         return cnn_accy, nme_accy

@@ -26,7 +26,7 @@ class DataManager(object):
         return self._increments[task]
 
     def get_accumulate_tasksize(self,task):
-        return sum(self._increments[:task+1])
+        return float(sum(self._increments[:task+1]))
 
     def get_total_classnum(self):
         return len(self._class_order)

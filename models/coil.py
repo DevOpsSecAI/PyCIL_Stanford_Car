@@ -18,11 +18,11 @@ import copy
 
 EPSILON = 1e-8
 
-epochs = 160
+epochs = 100
 lrate = 0.1
-milestones = [80, 120]
+milestones = [40, 80]
 lrate_decay = 0.1
-batch_size = 128
+batch_size = 32
 memory_size = 2000
 T = 2
 
@@ -147,8 +147,13 @@ class COIL(BaseLearner):
         )
 
         self._train(self.train_loader, self.test_loader)
-        self._reduce_exemplar(data_manager, memory_size // self._total_classes)
-        self._construct_exemplar(data_manager, memory_size // self._total_classes)
+        
+        if self.args['fixed_memory']:
+            examplar_size = self.args["memory_per_class"]
+        else:
+            examplar_size = memory_size // self._total_classes
+        self._reduce_exemplar(data_manager, examplar_size)
+        self._construct_exemplar(data_manager, examplar_size)
 
     def _train(self, train_loader, test_loader):
         self._network.to(self._device)

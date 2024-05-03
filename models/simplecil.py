@@ -18,8 +18,8 @@ from utils.toolkit import target2onehot, tensor2numpy
 
 
 num_workers = 8
-batch_size = 128
-milestones = [80, 120]
+batch_size = 32
+milestones = [40, 80]
 
 class SimpleCIL(BaseLearner):
     def __init__(self, args):
@@ -50,7 +50,7 @@ class SimpleCIL(BaseLearner):
         proto_list = []
         for class_index in class_list:
             # print('Replacing...',class_index)
-            data_index = (label_list == class_index).nonzero().squeeze(-1)
+            data_index = torch.nonzero(label_list == class_index).squeeze(-1)
             embedding = embedding_list[data_index]
             proto = embedding.mean(0)
             self._network.fc.weight.data[class_index] = proto
