@@ -415,16 +415,16 @@ class SimpleCosineIncrementalNet(BaseNet):
         super().__init__(args, pretrained)
 
     def update_fc(self, nb_classes, nextperiod_initialization=None):
-        fc = self.generate_fc(self.feature_dim, nb_classes).cuda()
+        fc = self.generate_fc(self.feature_dim, nb_classes).cpu()
         if self.fc is not None:
             nb_output = self.fc.out_features
             weight = copy.deepcopy(self.fc.weight.data)
             fc.sigma.data = self.fc.sigma.data
             if nextperiod_initialization is not None:
 
-                weight = torch.cat([weight.cuda(), nextperiod_initialization.cuda()])
+                weight = torch.cat([weight.cpu(), nextperiod_initialization.cpu()])
             else:
-                weight = torch.cat([weight.cuda(), torch.zeros(nb_classes - nb_output, self.feature_dim).cuda()])
+                weight = torch.cat([weight.cpu(), torch.zeros(nb_classes - nb_output, self.feature_dim).cpu()])
             fc.weight = nn.Parameter(weight)
         del self.fc
         self.fc = fc
@@ -602,14 +602,14 @@ class BEEFISONet(nn.Module):
             merge the weights
             '''
             new_task_size = self.task_sizes[-1]
-            fc_weight = torch.cat([self.old_fc.weight,torch.zeros((new_task_size,self.feature_dim-self.out_dim)).cuda()],dim=0)             
+            fc_weight = torch.cat([self.old_fc.weight,torch.zeros((new_task_size,self.feature_dim-self.out_dim)).cpu()],dim=0)             
             new_fc_weight = self.new_fc.weight
             new_fc_bias = self.new_fc.bias
             for i in range(len(self.task_sizes)-2,-1,-1):
                 new_fc_weight = torch.cat([*[self.biases[i](self.backward_prototypes.weight[i].unsqueeze(0),bias=False) for _ in range(self.task_sizes[i])],new_fc_weight],dim=0)
                 new_fc_bias = torch.cat([*[self.biases[i](self.backward_prototypes.bias[i].unsqueeze(0),bias=True) for _ in range(self.task_sizes[i])], new_fc_bias])
             fc_weight = torch.cat([fc_weight,new_fc_weight],dim=1)
-            fc_bias = torch.cat([self.old_fc.bias,torch.zeros(new_task_size).cuda()])
+            fc_bias = torch.cat([self.old_fc.bias,torch.zeros(new_task_size).cpu()])
             fc_bias+=new_fc_bias
             logits = features@fc_weight.permute(1,0)+fc_bias
             out = {"logits":logits}        
@@ -644,14 +644,14 @@ class BEEFISONet(nn.Module):
         if self.old_fc is not None:
             old_fc = self.generate_fc(self.feature_dim, sum(self.task_sizes))
             new_task_size = self.task_sizes[-1]
-            old_fc.weight.data = torch.cat([self.old_fc.weight.data,torch.zeros((new_task_size,self.feature_dim-self.out_dim)).cuda()],dim=0)             
+            old_fc.weight.data = torch.cat([self.old_fc.weight.data,torch.zeros((new_task_size,self.feature_dim-self.out_dim)).cpu()],dim=0)             
             new_fc_weight = self.new_fc.weight.data
             new_fc_bias = self.new_fc.bias.data
             for i in range(len(self.task_sizes)-2,-1,-1):
                 new_fc_weight = torch.cat([*[self.biases[i](self.backward_prototypes.weight.data[i].unsqueeze(0),bias=False) for _ in range(self.task_sizes[i])], new_fc_weight],dim=0)
                 new_fc_bias = torch.cat([*[self.biases[i](self.backward_prototypes.bias.data[i].unsqueeze(0),bias=True) for _ in range(self.task_sizes[i])], new_fc_bias])
             old_fc.weight.data = torch.cat([old_fc.weight.data,new_fc_weight],dim=1)
-            old_fc.bias.data = torch.cat([self.old_fc.bias.data,torch.zeros(new_task_size).cuda()])
+            old_fc.bias.data = torch.cat([self.old_fc.bias.data,torch.zeros(new_task_size).cpu()])
             old_fc.bias.data+=new_fc_bias
             self.old_fc = old_fc
         else:
