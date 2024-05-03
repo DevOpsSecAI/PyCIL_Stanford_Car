@@ -3,16 +3,6 @@ import argparse
 import os
 from trainer import train
 
-from logtail import LogtailHandler
-import logging
-
-handler = LogtailHandler(source_token=os.environ['SOURCE_TOKEN'])
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-logger.handlers = []
-logger.addHandler(handler)
-
-
 def main():
     args = setup_parser().parse_args()
     param = load_json(args.config)
