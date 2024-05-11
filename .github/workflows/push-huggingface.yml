@@ -1,0 +1,15 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Push repository to Hugging Face
+      env: 
+        HF_TOKEN: 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
+      run: git push https://phuochungus:$HF_TOKEN@huggingface.co/spaces/phuochungus/PyCIL_Stanford_Car main
