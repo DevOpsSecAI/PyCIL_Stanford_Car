@@ -10,12 +10,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Push repository to Hugging Face
-      env: 
-        HF_TOKEN: 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
       run: |
         git config --global user.email "phuochungus@gmail.com"
         git config --global user.name "HungNP"
         git remote add space https://huggingface.co/spaces/phuochungus/PyCIL_Stanford_Car
         git checkout -b main
         git reset $(git commit-tree HEAD^{tree} -m "New single commit message")
-        git push --force https://phuochungus:$HF_TOKEN@huggingface.co/spaces/phuochungus/PyCIL_Stanford_Car main 
+        git push --force https://phuochungus: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@huggingface.co/spaces/phuochungus/PyCIL_Stanford_Car main 
