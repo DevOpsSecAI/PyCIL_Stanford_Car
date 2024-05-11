@@ -12,6 +12,7 @@ RUN pip install -r requirements.txt
 
 RUN chmod +x download_dataset.sh train.sh
 
+RUN pip install torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
 RUN ./download_dataset.sh
 
 ENTRYPOINT [ "./entrypoint.sh" ]
