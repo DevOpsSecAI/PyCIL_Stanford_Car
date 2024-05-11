@@ -13,6 +13,8 @@ jobs:
       env: 
         HF_TOKEN: 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
       run: |
+        git config --global user.email "phuochungus@gmail.com"
+        git config --global user.name "HungNP"
         git remote add space https://huggingface.co/spaces/phuochungus/PyCIL_Stanford_Car
         git add .
         git commit -m "Update model"  
