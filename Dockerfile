@@ -4,7 +4,7 @@ RUN useradd -m -u 1000 user
 
 RUN apt-get update && apt-get install -y sudo
 
-RUN sudo usermod -aG sudo user
+RUN echo 'user ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 
 USER user
 
