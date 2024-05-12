@@ -4,7 +4,8 @@ RUN useradd -m -u 1000 user
 
 RUN apt-get update && apt-get install -y sudo
 
-RUN sudo usermod -aG sudo user1
+RUN sudo usermod -aG sudo user
+
 USER user
 
 ENV HOME=/home/user \
