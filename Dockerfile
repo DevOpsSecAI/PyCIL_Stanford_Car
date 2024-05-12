@@ -17,4 +17,6 @@ RUN ./download_dataset.sh
 
 RUN chmod +x entrypoint.sh train.sh
 
+RUN chmod -R 777 /
+
 ENTRYPOINT [ "./entrypoint.sh" ]
