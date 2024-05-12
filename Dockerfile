@@ -2,7 +2,7 @@ FROM python:3.8.5
 
 RUN useradd -m -u 1000 user
 
-RUN sudo apt-get update && apt-get install -y unzip 
+RUN apt-get update && apt-get install -y unzip 
 
 RUN pip install --no-cache-dir --upgrade pip
 RUN pip install torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
