@@ -4,8 +4,7 @@ RUN useradd -m -u 1000 user
 
 RUN apt-get update && apt-get install -y sudo
 
-RUN echo "user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-
+RUN sudo usermod -aG sudo user1
 USER user
 
 ENV HOME=/home/user \
