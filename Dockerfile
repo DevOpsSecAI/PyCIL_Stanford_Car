@@ -1,5 +1,7 @@
 FROM python:3.8.5
 
+RUN whoami
+
 RUN useradd -m -u 1000 user
 ENV HOME=/home/user \
 	PATH=/home/user/.local/bin:$PATH
@@ -16,8 +18,6 @@ COPY --chown=user . .
 RUN pip install -r requirements.txt
 
 USER user
-
-
 
 RUN chmod +x download_dataset.sh
 
