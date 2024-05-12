@@ -2,7 +2,6 @@ FROM python:3.8.5
 
 RUN useradd -m -u 1000 user
 
-
 RUN sudo apt-get update && apt-get install -y unzip 
 
 RUN pip install --no-cache-dir --upgrade pip
@@ -19,8 +18,8 @@ WORKDIR $HOME/app
 
 COPY --chown=user . .
 
-
 RUN chmod +x download_dataset.sh
+
 RUN ./download_dataset.sh
 
 RUN chmod +x entrypoint.sh train.sh
