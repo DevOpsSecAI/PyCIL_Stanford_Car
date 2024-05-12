@@ -9,6 +9,8 @@ RUN pip install torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pyto
 RUN pip install Cython
 RUN pip install -r requirements.txt
 
+COPY --chown=user . .
+
 USER user
 
 ENV HOME=/home/user \
@@ -16,7 +18,6 @@ ENV HOME=/home/user \
 
 WORKDIR $HOME/app
 
-COPY --chown=user . .
 
 RUN chmod +x download_dataset.sh
 
