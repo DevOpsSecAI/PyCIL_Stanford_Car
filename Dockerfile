@@ -1,6 +1,15 @@
 FROM python:3.8.5
 
-COPY . .
+RUN useradd -m -u 1000 user
+
+USER user
+
+ENV HOME=/home/user \
+	PATH=/home/user/.local/bin:$PATH
+
+WORKDIR $HOME/app
+
+COPY --chown=user . .
 
 RUN apt-get update && \
     apt-get upgrade -y && \
@@ -16,7 +25,5 @@ RUN chmod +x download_dataset.sh
 RUN ./download_dataset.sh
 
 RUN chmod +x entrypoint.sh train.sh
-
-RUN chmod -R 777 /
 
 ENTRYPOINT [ "./entrypoint.sh" ]
