@@ -17,8 +17,6 @@ COPY --chown=user . .
 
 RUN pip install -r requirements.txt
 
-USER user
-
 RUN chmod +x download_dataset.sh
 
 RUN ./download_dataset.sh
