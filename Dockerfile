@@ -12,8 +12,9 @@ RUN pip install torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pyto
 RUN pip install Cython
 RUN pip install -r requirements.txt
 
-RUN chmod +x download_dataset.sh train.sh entrypoint.sh
-
+RUN chmod +x download_dataset.sh
 RUN ./download_dataset.sh
+
+RUN chmod +x entrypoint.sh train.sh
 
 ENTRYPOINT [ "./entrypoint.sh" ]
