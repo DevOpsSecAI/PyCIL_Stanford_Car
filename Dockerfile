@@ -2,6 +2,10 @@ FROM python:3.8.5
 
 RUN useradd -m -u 1000 user
 
+RUN apt-get update && apt-get install -y sudo
+
+RUN echo "user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
 USER user
 
 ENV HOME=/home/user \
