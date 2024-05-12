@@ -1,4 +1,4 @@
-# !bin/bash
+#!/bin/sh
 kaggle datasets download -d senemanu/stanfordcarsfcs
 
 unzip stanfordcarsfcs.zip
