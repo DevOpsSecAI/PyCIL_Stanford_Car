@@ -5,7 +5,7 @@ RUN whoami
 RUN useradd -m -u 1000 user
 ENV HOME=/home/user \
 	PATH=/home/user/.local/bin:$PATH
-WORKDIR $HOME/app
+WORKDIR $HOME
 
 RUN apt-get update && apt-get install -y unzip 
 
@@ -22,7 +22,5 @@ RUN chmod +x download_dataset.sh
 RUN ./download_dataset.sh
 
 RUN chmod +x entrypoint.sh train.sh
-
-RUN chown -R user:user $HOME
 
 ENTRYPOINT [ "./entrypoint.sh" ]
