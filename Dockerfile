@@ -23,4 +23,6 @@ RUN ./download_dataset.sh
 
 RUN chmod +x entrypoint.sh train.sh
 
+RUN chown -R user:user $HOME
+
 ENTRYPOINT [ "./entrypoint.sh" ]
