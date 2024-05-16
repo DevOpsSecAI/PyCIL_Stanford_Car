@@ -12,9 +12,11 @@ RUN pip install torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pyto
 RUN pip install Cython
 RUN pip install --upgrade sentry-sdk
 
-COPY --chown=user . .
+COPY --chown=user requirements.txt requirements.txt
 
 RUN pip install -r requirements.txt
+
+COPY --chown=user . .
 
 RUN chmod +x download_dataset.sh
 
