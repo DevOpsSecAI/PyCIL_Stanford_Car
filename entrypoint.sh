@@ -1,5 +1,11 @@
 #!/bin/sh
 
-./run.sh &
+nohup ./train.sh ./exps/simplecil.json &
 
-echo "finished initialize"
+echo "Training script started in the background."
+
+# Keep the container running
+echo "Container is running. Training script is executing in the background."
+while :; do
+    sleep 60
+done
