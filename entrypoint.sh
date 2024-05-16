@@ -1,11 +1,11 @@
-#!/bin/sh
+#!/bin/bash
+set -e
 
-nohup ./train.sh ./exps/simplecil.json &
+# Ensure the training script is executable
+chmod +x ./train.sh
 
-echo "Training script started in the background."
+# Log the start of the training process
+echo "Starting training process..."
 
-# Keep the container running
-echo "Container is running. Training script is executing in the background."
-while :; do
-    sleep 60
-done
+# Execute the training script with the specified configuration
+exec ./train.sh ./exps/simplecil.json
