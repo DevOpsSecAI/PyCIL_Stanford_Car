@@ -5,7 +5,7 @@ colorFrom: red
 colorTo: red
 sdk: docker
 pinned: false
-app_port: 7860 
+app_port: 5000 
 ---
 # PyCIL: A Python Toolbox for Class-Incremental Learning
 
