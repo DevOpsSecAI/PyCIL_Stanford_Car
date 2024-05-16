@@ -24,7 +24,7 @@ def index():
     return "Hello, World!"
 
 @app.get("/train")
-def index():
+def train():
     subprocess.call(["./entrypoint.sh"])
     return "Bash script triggered successfully!"
 
