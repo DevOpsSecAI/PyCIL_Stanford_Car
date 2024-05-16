@@ -26,4 +26,6 @@ COPY --chown=user . .
 
 RUN chmod +x entrypoint.sh train.sh
 
+RUN pip install Flask
+
 CMD ["python", "server.py"]
