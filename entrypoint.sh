@@ -1,3 +1,3 @@
 #!/bin/sh
 
-./train.sh ./exps/simplecil.json &
+./train.sh ./exps/simplecil.json
