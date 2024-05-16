@@ -16,11 +16,13 @@ COPY --chown=user requirements.txt requirements.txt
 
 RUN pip install -r requirements.txt
 
-COPY --chown=user . .
+COPY --chown=user download_dataset.sh download_dataset.sh
 
 RUN chmod +x download_dataset.sh
 
 RUN ./download_dataset.sh
+
+COPY --chown=user . .
 
 RUN chmod +x entrypoint.sh train.sh
 
