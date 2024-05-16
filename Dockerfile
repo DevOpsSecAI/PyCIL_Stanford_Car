@@ -26,4 +26,4 @@ COPY --chown=user . .
 
 RUN chmod +x entrypoint.sh train.sh
 
-ENTRYPOINT [ "./entrypoint.sh" ]
+CMD ["python", "server.py"]
