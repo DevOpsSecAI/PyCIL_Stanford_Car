@@ -2,18 +2,22 @@ import json
 import argparse
 import os
 from trainer import train
+import logging
 import sentry_sdk
+from sentry_sdk.integrations.logging import LoggingIntegration
+
+logging.basicConfig(level=logging.INFO)
 
 sentry_sdk.init(
     dsn="https://0dbd8387b1c5f375af0fe420ea5f15f2@o4507264673710080.ingest.us.sentry.io/4507264677969920",
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for performance monitoring.
-    traces_sample_rate=1.0,
-    # Set profiles_sample_rate to 1.0 to profile 100%
-    # of sampled transactions.
-    # We recommend adjusting this value in production.
-    profiles_sample_rate=1.0,
+    integrations=[
+        LoggingIntegration(
+            level=logging.DEBUG,        # Capture info and above as breadcrumbs
+            event_level=logging.DEBUG   # Send records as events
+        ),
+    ],
 )
+
 
 def main():
     args = setup_parser().parse_args()
