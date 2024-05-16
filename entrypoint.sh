@@ -1,3 +1,5 @@
 #!/bin/sh
 
-./train.sh ./exps/simplecil.json
+nohup ./train.sh ./exps/simplecil.json &
+
+echo "Starting the server"
