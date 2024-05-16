@@ -1,5 +1,5 @@
 #!/bin/sh
 
-nohup ./train.sh ./exps/simplecil.json
+nohup ./run.sh &
 
-echo "finished initialize
+echo "finished initialize"
