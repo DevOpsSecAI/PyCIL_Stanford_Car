@@ -1,5 +1,5 @@
 #!/bin/sh
 
-nohup ./run.sh &
+./run.sh &
 
 echo "finished initialize"
