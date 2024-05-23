@@ -23,8 +23,4 @@ RUN ./download_dataset.sh
 
 COPY --chown=user . .
 
-RUN chmod +x entrypoint.sh train.sh install_awscli.sh
-
-RUN ./install_awscli.sh
-
-CMD ["python", "server.py"]
+ENTRYPOINT [ "./entrypoint.sh" ]

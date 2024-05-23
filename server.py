@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 @app.get("/train")
 def train():
-    subprocess.call(["./entrypoint.sh"])
+    subprocess.call(["./train.sh ./exps/simplecil.json"])
     return "Bash script triggered successfully!"
 
 

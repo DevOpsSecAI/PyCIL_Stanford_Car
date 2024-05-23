@@ -1,11 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
-# Ensure the training script is executable
-chmod +x ./train.sh
+chmod +x train.sh install_awscli.sh
 
-# Log the start of the training process
-echo "Starting training process..."
+./install_awscli.sh
 
-# Execute the training script with the specified configuration
-exec ./train.sh ./exps/simplecil.json
+python server.py
