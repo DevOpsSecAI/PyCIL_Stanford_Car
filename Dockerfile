@@ -25,6 +25,6 @@ COPY --chown=user . .
 
 RUN chmod +x install_awscli.sh && ./install_awscli.sh
 
-RUN chmod +x entrypoint.sh
+RUN chmod +x entrypoint.sh upload_s3.sh
 
 ENTRYPOINT [ "./entrypoint.sh" ]
