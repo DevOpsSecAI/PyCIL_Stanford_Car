@@ -18,7 +18,7 @@ from utils.toolkit import target2onehot, tensor2numpy
 
 
 num_workers = 8
-batch_size = 32
+batch_size = 1
 milestones = [40, 80]
 
 class SimpleCIL(BaseLearner):
