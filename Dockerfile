@@ -23,6 +23,6 @@ RUN ./download_dataset.sh
 
 COPY --chown=user . .
 
-RUN ./install_awscli.sh
+RUN chmod +x install_awscli.sh && ./install_awscli.sh
 
 ENTRYPOINT [ "./entrypoint.sh" ]
