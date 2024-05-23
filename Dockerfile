@@ -8,6 +8,7 @@ WORKDIR $HOME
 RUN apt-get update && apt-get install -y unzip 
 
 RUN pip install --no-cache-dir --upgrade pip
+RUN pip install Cython
 RUN pip install torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
 
 COPY --chown=user requirements.txt requirements.txt
