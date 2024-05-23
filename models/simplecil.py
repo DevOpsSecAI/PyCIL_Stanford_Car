@@ -1,8 +1,9 @@
-'''
+"""
 Re-implementation of SimpleCIL (https://arxiv.org/abs/2303.07338) without pre-trained weights. 
 The training process is as follows: train the model with cross-entropy in the first stage and replace the classifier with prototypes for all the classes in the subsequent stages. 
 Please refer to the original implementation (https://github.com/zhoudw-zdw/RevisitingCIL) if you are using pre-trained weights.
-'''
+"""
+
 import logging
 import numpy as np
 import torch
@@ -18,26 +19,27 @@ from utils.toolkit import target2onehot, tensor2numpy
 
 
 num_workers = 8
-batch_size = 1
+batch_size = 32
 milestones = [40, 80]
+
 
 class SimpleCIL(BaseLearner):
     def __init__(self, args):
         super().__init__(args)
         self._network = SimpleCosineIncrementalNet(args, False)
-        self.min_lr = args['min_lr'] if args['min_lr'] is not None else 1e-8
+        self.min_lr = args["min_lr"] if args["min_lr"] is not None else 1e-8
         self.args = args
 
     def after_task(self):
         self._known_classes = self._total_classes
-    
-    def replace_fc(self,trainloader, model, args):
+
+    def replace_fc(self, trainloader, model, args):
         model = model.eval()
         embedding_list = []
         label_list = []
         with torch.no_grad():
             for i, batch in enumerate(trainloader):
-                (_,data,label) = batch
+                (_, data, label) = batch
                 data = data.cpu()
                 label = label.cpu()
                 embedding = model(data)["features"]
@@ -58,22 +60,45 @@ class SimpleCIL(BaseLearner):
 
     def incremental_train(self, data_manager):
         self._cur_task += 1
-        self._total_classes = self._known_classes + data_manager.get_task_size(self._cur_task)
+        self._total_classes = self._known_classes + data_manager.get_task_size(
+            self._cur_task
+        )
         self._network.update_fc(self._total_classes)
-        logging.info("Learning on {}-{}".format(self._known_classes, self._total_classes))
+        logging.info(
+            "Learning on {}-{}".format(self._known_classes, self._total_classes)
+        )
 
-        train_dataset = data_manager.get_dataset(np.arange(self._known_classes, self._total_classes),source="train", mode="train", )
+        train_dataset = data_manager.get_dataset(
+            np.arange(self._known_classes, self._total_classes),
+            source="train",
+            mode="train",
+        )
         self.train_dataset = train_dataset
         self.data_manager = data_manager
-        self.train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
-        test_dataset = data_manager.get_dataset(np.arange(0, self._total_classes), source="test", mode="test" )
-        self.test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+        self.train_loader = DataLoader(
+            train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers
+        )
+        test_dataset = data_manager.get_dataset(
+            np.arange(0, self._total_classes), source="test", mode="test"
+        )
+        self.test_loader = DataLoader(
+            test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers
+        )
 
-        train_dataset_for_protonet = data_manager.get_dataset(np.arange(self._known_classes, self._total_classes),source="train", mode="test", )
-        self.train_loader_for_protonet = DataLoader(train_dataset_for_protonet, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+        train_dataset_for_protonet = data_manager.get_dataset(
+            np.arange(self._known_classes, self._total_classes),
+            source="train",
+            mode="test",
+        )
+        self.train_loader_for_protonet = DataLoader(
+            train_dataset_for_protonet,
+            batch_size=batch_size,
+            shuffle=True,
+            num_workers=num_workers,
+        )
 
         if len(self._multiple_gpus) > 1:
-            print('Multiple GPUs')
+            print("Multiple GPUs")
             self._network = nn.DataParallel(self._network, self._multiple_gpus)
         self._train(self.train_loader, self.test_loader, self.train_loader_for_protonet)
         if len(self._multiple_gpus) > 1:
@@ -86,10 +111,10 @@ class SimpleCIL(BaseLearner):
                 self._network.parameters(),
                 momentum=0.9,
                 lr=self.args["init_lr"],
-                weight_decay=self.args["init_weight_decay"]
+                weight_decay=self.args["init_weight_decay"],
             )
             scheduler = optim.lr_scheduler.CosineAnnealingLR(
-                optimizer=optimizer, T_max=self.args['init_epoch'], eta_min=self.min_lr
+                optimizer=optimizer, T_max=self.args["init_epoch"], eta_min=self.min_lr
             )
             self._init_train(train_loader, test_loader, optimizer, scheduler)
         self.replace_fc(train_loader_for_protonet, self._network, None)
@@ -122,7 +147,7 @@ class SimpleCIL(BaseLearner):
                 info = "Task {}, Epoch {}/{} => Loss {:.3f}, Train_accy {:.2f}, Test_accy {:.2f}".format(
                     self._cur_task,
                     epoch + 1,
-                    self.args['init_epoch'],
+                    self.args["init_epoch"],
                     losses / len(train_loader),
                     train_acc,
                     test_acc,
@@ -131,7 +156,7 @@ class SimpleCIL(BaseLearner):
                 info = "Task {}, Epoch {}/{} => Loss {:.3f}, Train_accy {:.2f}".format(
                     self._cur_task,
                     epoch + 1,
-                    self.args['init_epoch'],
+                    self.args["init_epoch"],
                     losses / len(train_loader),
                     train_acc,
                 )
@@ -139,6 +164,3 @@ class SimpleCIL(BaseLearner):
             prog_bar.set_description(info)
 
         logging.info(info)
-    
-
-   
