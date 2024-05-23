@@ -3,9 +3,10 @@ import subprocess
 
 app = Flask(__name__)
 
+
 @app.get("/train")
 def train():
-    subprocess.call(["./train.sh ./exps/simplecil.json"])
+    subprocess.call(["./train.sh", "./exps/simplecil.json"])
     return "Bash script triggered successfully!"
 
 
