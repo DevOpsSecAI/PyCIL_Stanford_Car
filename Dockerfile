@@ -9,8 +9,6 @@ RUN apt-get update && apt-get install -y unzip
 
 RUN pip install --no-cache-dir --upgrade pip
 RUN pip install torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
-RUN pip install Cython
-RUN pip install --upgrade sentry-sdk
 
 COPY --chown=user requirements.txt requirements.txt
 
@@ -24,8 +22,8 @@ RUN ./download_dataset.sh
 
 COPY --chown=user . .
 
-RUN chmod +x entrypoint.sh train.sh
+RUN chmod +x entrypoint.sh train.sh install_awscli.sh
 
-RUN pip install Flask
+RUN ./install_awscli.sh
 
 CMD ["python", "server.py"]
