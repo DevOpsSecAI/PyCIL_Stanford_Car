@@ -5,4 +5,4 @@ set -e
 set -x
 
 # Perform the S3 copy operation with a timestamp in the destination path
-aws s3 cp ./test_upload s3://pycil.com/"$(date -u +"%Y-%m-%dT%H:%M:%SZ")" --recursive
+aws s3 cp ./models s3://pycil.com/"$(date -u +"%Y-%m-%dT%H:%M:%SZ")" --recursive
