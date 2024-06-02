@@ -17,7 +17,8 @@ class DataManager(object):
         offset = len(self._class_order) - sum(self._increments)
         if offset > 0:
             self._increments.append(offset)
-
+    def class_list(self, task):
+        return self._class_order[: sum(self._increments[: task + 1])]
     @property
     def nb_tasks(self):
         return len(self._increments)
