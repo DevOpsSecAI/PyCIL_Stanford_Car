@@ -31,9 +31,12 @@ class SimpleCIL(BaseLearner):
     def load_checkpoint(self, filename):
         checkpoint = torch.load(filename)
         self._total_classes = len(checkpoint["classes"])
-        self.class_list = checkpoint["classes"]
+        self.class_list = np.array(checkpoint["classes"])
+        self.label_list = checkpoint["label_list"]
+        print("Class list: ", self.class_list)
         self._network.update_fc(self._total_classes)
         self._network.load_checkpoint(checkpoint["network"])
+        self._network.to(self._device)
 
     def after_task(self):
         self._known_classes = self._total_classes
@@ -41,12 +44,12 @@ class SimpleCIL(BaseLearner):
     def save_checkpoint(self, filename):
         self._network.cpu()
         save_dict = {
-            "classes": self.data_manager.class_list(self._cur_task),
+            "classes": self.data_manager.get_class_list(self._cur_task),
             "network": {
                 "convnet": self._network.convnet.state_dict(),
                 "fc": self._network.fc.state_dict()
-            }
-            
+            },
+            "label_list": self.data_manager.get_label_list(self._cur_task),
         }
         torch.save(save_dict, "./{}/{}_{}.pkl".format(filename, self.args['model_name'], self._cur_task))
     
@@ -72,7 +75,10 @@ class SimpleCIL(BaseLearner):
             data_index = torch.nonzero(label_list == class_index).squeeze(-1)
             embedding = embedding_list[data_index]
             proto = embedding.mean(0)
-            self._network.fc.weight.data[class_index] = proto
+            if len(self._multiple_gpus) > 1:
+              self._network.module.fc.weight.data[class_index] = proto
+            else:
+              self._network.fc.weight.data[class_index] = proto
         return model
 
     def incremental_train(self, data_manager):

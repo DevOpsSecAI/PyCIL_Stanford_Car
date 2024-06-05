@@ -3,22 +3,41 @@ import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
-from utils.data import iCIFAR10, iCIFAR100, iImageNet100, iImageNet1000, StanfordCar
+from utils.data import iCIFAR10, iCIFAR100, iImageNet100, iImageNet1000, StanfordCar, GeneralDataset
 from tqdm import tqdm
-
 class DataManager(object):
-    def __init__(self, dataset_name, shuffle, seed, init_cls, increment):
+    def __init__(self, dataset_name, shuffle, seed, init_cls, increment, resume = False, path = None, class_list = [-1]):
         self.dataset_name = dataset_name
-        self._setup_data(dataset_name, shuffle, seed)
-        assert init_cls <= len(self._class_order), "No enough classes."
-        self._increments = [init_cls]
-        while sum(self._increments) + increment < len(self._class_order):
-            self._increments.append(increment)
-        offset = len(self._class_order) - sum(self._increments)
-        if offset > 0:
-            self._increments.append(offset)
-    def class_list(self, task):
+        self.init_class_list = class_list
+        if not resume:
+            data = {
+                "path": path,
+                "class_list": [-1],
+            }
+            self._setup_data(dataset_name, shuffle, seed, data = data)
+            if len(self._class_order) < init_cls:
+                self._increments = [len(self._class_order)]
+            else:
+                self._increments = [init_cls]
+                while sum(self._increments) + increment < len(self._class_order):
+                    self._increments.append(increment)
+                offset = len(self._class_order) - sum(self._increments)
+                if offset > 0:
+                    self._increments.append(offset)
+        else:
+            self._increments = class_list
+            data = {
+                "path": path,
+                "class_list": class_list,
+            }
+            self._setup_data(dataset_name, shuffle, seed, data = data)
+    def get_class_list(self, task):
         return self._class_order[: sum(self._increments[: task + 1])]
+    def get_label_list(self, task):
+        cls_list = self.get_class_list(task)
+        start_index = max(self.init_class_list) + 1
+        result = {i + start_index:self.label_list[i] for i in cls_list}
+        return result
     @property
     def nb_tasks(self):
         return len(self._increments)
@@ -184,9 +203,9 @@ class DataManager(object):
             train_data, train_targets, trsf, self.use_path
         ), DummyDataset(val_data, val_targets, trsf, self.use_path)
 
-    def _setup_data(self, dataset_name, shuffle, seed):
-        idata = _get_idata(dataset_name)
-        idata.download_data()
+    def _setup_data(self, dataset_name, shuffle, seed, data = None):
+        idata = _get_idata(dataset_name, data = data)
+        self.label_list = idata.download_data()
 
         # Data
         self._train_data, self._train_targets = idata.train_data, idata.train_targets
@@ -198,12 +217,12 @@ class DataManager(object):
         self._common_trsf = idata.common_trsf
 
         # Order
-        order = [i for i in range(len(np.unique(self._train_targets)))]
+        order = np.unique(self._train_targets)
         if shuffle:
             np.random.seed(seed)
-            order = np.random.permutation(len(order)).tolist()
+            order = np.random.permutation(order).tolist()
         else:
-            order = idata.class_order
+            order = idata.class_order.tolist()
         self._class_order = order
         logging.info(self._class_order)
 
@@ -267,7 +286,7 @@ def _map_new_class_index(y, order):
     return np.array(list(map(lambda x: order.index(x), y)))
 
 
-def _get_idata(dataset_name):
+def _get_idata(dataset_name, data = None):
     name = dataset_name.lower()
     if name == "cifar10":
         return iCIFAR10()
@@ -279,6 +298,9 @@ def _get_idata(dataset_name):
         return iImageNet100()
     elif name == 'stanfordcar':
         return StanfordCar()
+    elif name == 'general_dataset':
+        print(data)
+        return GeneralDataset(data["path"], init_class_list = data["class_list"]);
     else:
         raise NotImplementedError("Unknown dataset {}.".format(dataset_name))
 

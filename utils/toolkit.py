@@ -51,9 +51,14 @@ def accuracy(y_pred, y_true, nb_old, increment=10):
         idxes = np.where(
             np.logical_and(y_true >= class_id, y_true < class_id + increment)
         )[0]
-        label = "{}-{}".format(
-            str(class_id).rjust(2, "0"), str(class_id + increment - 1).rjust(2, "0")
-        )
+        if increment == 1:
+            label = "{}".format(
+                str(class_id).rjust(2, "0")
+            )
+        else:
+            label = "{}-{}".format(
+                str(class_id).rjust(2, "0"), str(class_id + increment - 1).rjust(2, "0")
+            )
         all_acc[label] = np.around(
             (y_pred[idxes] == y_true[idxes]).sum() * 100 / len(idxes), decimals=2
         )
@@ -77,13 +82,13 @@ def accuracy(y_pred, y_true, nb_old, increment=10):
     return all_acc
 
 
-def split_images_labels(imgs):
+def split_images_labels(imgs, start_index = 0):
     # split trainset.imgs in ImageFolder
     images = []
     labels = []
     for item in imgs:
         images.append(item[0])
-        labels.append(item[1])
+        labels.append(item[1] + start_index)
 
     return np.array(images), np.array(labels)
 

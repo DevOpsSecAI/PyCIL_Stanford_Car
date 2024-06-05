@@ -18,6 +18,7 @@ class BaseLearner(object):
         self._cur_task = -1
         self._known_classes = 0
         self._total_classes = 0
+        self.class_list = []
         self._network = None
         self._old_network = None
         self._data_memory, self._targets_memory = np.array([]), np.array([])
@@ -71,9 +72,9 @@ class BaseLearner(object):
     def after_task(self):
         pass
 
-    def _evaluate(self, y_pred, y_true):
+    def _evaluate(self, y_pred, y_true, group = 10):
         ret = {}
-        grouped = accuracy(y_pred.T[0], y_true, self._known_classes)
+        grouped = accuracy(y_pred.T[0], y_true, self._known_classes, increment = group)
         ret["grouped"] = grouped
         ret["top1"] = grouped["total"]
         ret["top{}".format(self.topk)] = np.around(
@@ -83,11 +84,11 @@ class BaseLearner(object):
 
         return ret
 
-    def eval_task(self, data=None, save_conf=False):
+    def eval_task(self, data=None, save_conf=False, group = 10):
         if data is None:
             data = self.test_loader
         y_pred, y_true = self._eval_cnn(data)
-        cnn_accy = self._evaluate(y_pred, y_true)
+        cnn_accy = self._evaluate(y_pred, y_true, group = group)
 
         if hasattr(self, "_class_means"):
             y_pred, y_true = self._eval_nme(data, self._class_means)
@@ -147,9 +148,8 @@ class BaseLearner(object):
             )[
                 1
             ]  # [bs, topk]
-            y_pred.append(predicts.cpu().numpy())
+            y_pred.append(self.class_list[predicts.cpu().numpy()])
             y_true.append(targets.cpu().numpy())
-
         return np.concatenate(y_pred), np.concatenate(y_true)  # [N, topk]
     def inference(self, image):
         self._network.eval()

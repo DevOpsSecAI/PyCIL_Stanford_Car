@@ -7,38 +7,43 @@ from utils.data_manager import DataManager
 from utils.toolkit import count_parameters
 import os
 import numpy as np
+from load_model import load_model, get_methods
 
-
-def train(args):
+def train_more(args):
     seed_list = copy.deepcopy(args["seed"])
     device = copy.deepcopy(args["device"])
 
     for seed in seed_list:
         args["seed"] = seed
         args["device"] = device
-        _train(args)
+        _train_more(args)
 
 
-def _train(args):
+def _train_more(args):
 
     init_cls = 0 if args ["init_cls"] == args["increment"] else args["init_cls"]
-    logs_name = "logs/{}/{}_{}/{}/{}".format(args["model_name"],args["dataset"], args['data'], init_cls, args['increment'])
+    logs_name = "logs/{}/{}/{}/{}".format(args["model_name"],args["dataset"], init_cls, args['increment'])
 
     if not os.path.exists(logs_name):
         os.makedirs(logs_name)
 
-    save_name = "models/{}/{}_{}/{}/{}".format(args["model_name"],args["dataset"], args['data'], init_cls, args['increment'])
+    save_name = "models/{}/{}/{}/{}".format(args["model_name"],args["dataset"], init_cls, args['increment'])
     
     if not os.path.exists(save_name):
         os.makedirs(save_name)
-    if not os.path.exists(logs_name):
-        os.makedirs(logs_name)
-    logfilename = "logs/{}/{}_{}/{}/{}/{}_{}_{}".format(
+    logfilename = "logs/{}/{}/{}/{}/{}_{}_{}".format(
         args["model_name"],
         args["dataset"],
-        args['data'],
         init_cls,
         args["increment"],
+        args["prefix"],
+        args["seed"],
+        args["convnet_type"],
+    )
+    if not os.path.exists(logs_name):
+        os.makedirs(logs_name)
+    args['logfilename'] = logs_name
+    args['csv_name'] = "{}_{}_{}".format(
         args["prefix"],
         args["seed"],
         args["convnet_type"],
@@ -50,29 +55,21 @@ def _train(args):
             logging.FileHandler(filename=logfilename + ".log"),
             logging.StreamHandler(sys.stdout),
         ],
-        force=True
     )
-    args['logfilename'] = logs_name
-    args['csv_name'] = "{}_{}_{}".format(
-        args["prefix"],
-        args["seed"],
-        args["convnet_type"],
-    )
-
 
     _set_random()
-    _set_device(args)
     print_args(args)
-    model = factory.get_model(args["model_name"], args)
+    model = load_model(args)
     data_manager = DataManager(
         args["dataset"],
         args["shuffle"],
         args["seed"],
         args["init_cls"],
         args["increment"],
+        resume = True,
         path = args["data"],
+        class_list = model.class_list
     )
-    
     cnn_curve, nme_curve = {"top1": [], "top5": []}, {"top1": [], "top5": []}
     cnn_matrix, nme_matrix = [], []
 
