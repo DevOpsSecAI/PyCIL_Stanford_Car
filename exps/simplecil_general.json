@@ -9,7 +9,7 @@
     "increment": 20,
     "model_name": "simplecil",
     "convnet_type": "cosine_resnet18",
-    "device": ["0", "1"],
+    "device": [-1],
     "seed": [2003],
     "init_epoch": 1,
     "init_lr": 0.01,
