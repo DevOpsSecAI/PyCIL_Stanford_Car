@@ -4,10 +4,22 @@ import subprocess
 app = Flask(__name__)
 
 
-@app.get("/train")
+@app.route("/train", methods=["GET"])
 def train():
-    subprocess.call(["./train.sh", "./exps/simplecil.json"])
-    return "Bash script triggered successfully!"
+    try:
+        subprocess.call(
+            [
+                "python",
+                "main.py",
+                "--config",
+                "./exps/simplecil_general.json",
+                "--data",
+                "./car_data",
+            ]
+        )
+        return "Bash script triggered successfully!"
+    except subprocess.CalledProcessError as e:
+        return f"An error occurred: {str(e)}", 500
 
 
 if __name__ == "__main__":
