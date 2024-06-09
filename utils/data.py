@@ -10,7 +10,6 @@ class iData(object):
     common_trsf = []
     class_order = None
 
-
 class iCIFAR10(iData):
     use_path = False
     train_trsf = [
@@ -36,9 +35,9 @@ class iCIFAR10(iData):
         )
         self.test_data, self.test_targets = test_dataset.data, np.array(
             test_dataset.targets
-        )
-
-
+        )   
+        
+        
 class iCIFAR100(iData):
     use_path = False
     train_trsf = [
@@ -127,6 +126,51 @@ class StanfordCar(iData):
         test_dset = datasets.ImageFolder(os.path.join(path, "test"))
         self.train_data, self.train_targets = split_images_labels(train_dset.imgs)
         self.test_data, self.test_targets = split_images_labels(test_dset.imgs)
+
+class GeneralDataset(iData):
+    def __init__(
+        self,
+        path,
+        init_class_list = [-1],
+        train_transform = None, 
+        test_transform = None, 
+        common_transform = None):
+        self.use_path = True
+        self.path = path
+        self.train_trsf = train_transform
+        if self.train_trsf == None:
+            self.train_trsf = [
+                transforms.Resize(224),
+                transforms.CenterCrop(224),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomAffine(25, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=8),
+                transforms.ColorJitter(),
+            ]
+        self.test_trsf = test_transform
+        if self.test_trsf == None:
+            self.test_trsf = [
+                transforms.Resize(224),
+                transforms.CenterCrop(224),
+            ]
+        self.common_trsf = common_transform
+        if self.common_trsf == None:
+            self.common_trsf = [
+                transforms.ToTensor(),
+                transforms.Normalize(
+                        mean=[0.5, 0.5, 0.5],
+                        std=[0.5, 0.5, 0.5]
+                    ),
+            ]
+        self.init_index = max(init_class_list) + 1
+        print("Start index:", self.init_index)
+        self.class_order = np.arange(self.init_index, self.init_index + len(os.listdir(os.path.join(self.path, "train"))))
+    
+    def download_data(self):
+        train_dset = datasets.ImageFolder(os.path.join(self.path, "train"))
+        test_dset = datasets.ImageFolder(os.path.join(self.path, "val"))
+        self.train_data, self.train_targets = split_images_labels(train_dset.imgs, start_index = self.init_index)
+        self.test_data, self.test_targets = split_images_labels(test_dset.imgs, start_index = self.init_index)
+        return train_dset.classes
 
 class iImageNet100(iData):
     use_path = True
