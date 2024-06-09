@@ -7,6 +7,7 @@ app = Flask(__name__)
 @app.route("/train", methods=["GET"])
 def train():
     try:
+        subprocess.call(["mv", "./car_data/car_data/test", "./car_data/car_data/val"])
         subprocess.call(
             [
                 "python",
