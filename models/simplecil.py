@@ -30,10 +30,28 @@ class SimpleCIL(BaseLearner):
         self.min_lr = args["min_lr"] if args["min_lr"] is not None else 1e-8
         self.args = args
 
+    def load_checkpoint(self, filename):
+        checkpoint = torch.load(filename)
+        self._total_classes = len(checkpoint["classes"])
+        self.class_list = checkpoint["classes"]
+        self._network.update_fc(self._total_classes)
+        self._network.load_checkpoint(checkpoint["network"])
+
     def after_task(self):
         self._known_classes = self._total_classes
-
-    def replace_fc(self, trainloader, model, args):
+    def save_checkpoint(self, filename):
+        self._network.cpu()
+        save_dict = {
+            "classes": self.data_manager.class_list(self._cur_task),
+            "network": {
+                "convnet": self._network.convnet.state_dict(),
+                "fc": self._network.fc.state_dict()
+            }
+            
+        }
+        torch.save(save_dict, "./{}/{}_{}.pkl".format(filename, self.args['model_name'], self._cur_task))
+    
+    def replace_fc(self,trainloader, model, args):
         model = model.eval()
         embedding_list = []
         label_list = []
@@ -160,7 +178,15 @@ class SimpleCIL(BaseLearner):
                     losses / len(train_loader),
                     train_acc,
                 )
-
+            elapsed = prog_bar.format_dict["elapsed"]
+            rate = prog_bar.format_dict["rate"]
+            remaining = (prog_bar.total - prog_bar.n) / rate if rate and prog_bar.total else 0  # Seconds*
             prog_bar.set_description(info)
-
+            logging.info("Working on task {}: {:.2f}:{:.2f}".format(
+                    self._cur_task,
+                    elapsed,
+                    remaining))            
         logging.info(info)
+
+        logging.info("Finised on task {}: {:.2f}".format(
+                    self._cur_task, elapsed))

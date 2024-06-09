@@ -57,6 +57,8 @@ class BaseLearner(object):
         else:
             self._reduce_exemplar(data_manager, per_class)
             self._construct_exemplar(data_manager, per_class)
+    def load_checkpoint(self, filename):
+        pass;
 
     def save_checkpoint(self, filename):
         self._network.cpu()
@@ -149,7 +151,23 @@ class BaseLearner(object):
             y_true.append(targets.cpu().numpy())
 
         return np.concatenate(y_pred), np.concatenate(y_true)  # [N, topk]
-
+    def inference(self, image):
+        self._network.eval()
+        self._network.to(self._device)
+        image = image.to(self._device, dtype=torch.float32)
+        with torch.no_grad():
+            output = self._network(image)["logits"]
+            print("Logits: ", output)
+            predict = torch.topk(
+                output, k=self.topk, dim=1, largest=True, sorted=True
+            )[1]
+        print("TopK number: ", self.topk)
+        if self.class_list is not None:
+            self.class_list = np.array(self.class_list)
+            return self.class_list[predict.cpu().numpy()]
+        elif self.data_manager is not None:
+            return self.data_manager.class_list[predict.cpu().numpy()]
+        return predicts
     def _eval_nme(self, loader, class_means):
         self._network.eval()
         vectors, y_true = self._extract_vectors(loader)
