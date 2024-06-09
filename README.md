@@ -1,3 +1,11 @@
+---
+title: Pycil
+emoji: 🍳
+colorFrom: red
+colorTo: red
+sdk: docker
+pinned: false
+---
 # PyCIL: A Python Toolbox for Class-Incremental Learning
 
 ---
