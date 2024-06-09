@@ -14,7 +14,7 @@ def train():
                 "--config",
                 "./exps/simplecil_general.json",
                 "--data",
-                "./car_data",
+                "./car_data/car_data",
             ]
         )
         return "Bash script triggered successfully!"
