@@ -33,5 +33,5 @@ def setup_parser():
     return parser
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

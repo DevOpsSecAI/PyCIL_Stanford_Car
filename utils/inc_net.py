@@ -414,15 +414,15 @@ class SimpleCosineIncrementalNet(BaseNet):
         super().__init__(args, pretrained)
 
     def update_fc(self, nb_classes, nextperiod_initialization=None):
-        fc = self.generate_fc(self.feature_dim, nb_classes).cuda()
+        fc = self.generate_fc(self.feature_dim, nb_classes)
         if self.fc is not None:
             nb_output = self.fc.out_features
             weight = copy.deepcopy(self.fc.weight.data)
             fc.sigma.data = self.fc.sigma.data
             if nextperiod_initialization is not None:
-                weight = torch.cat([weight.cuda(), nextperiod_initialization.cuda()])
+                weight = torch.cat([weight, nextperiod_initialization])
             else:
-                weight = torch.cat([weight.cuda(), torch.zeros(nb_classes - nb_output, self.feature_dim).cuda()])
+                weight = torch.cat([weight, torch.zeros(nb_classes - nb_output, self.feature_dim)])
             fc.weight = nn.Parameter(weight)
         del self.fc
         self.fc = fc
