@@ -1,7 +1,7 @@
-from flask import Flask
+from flask import Flask, send_from_directory
 import subprocess
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path="/static")
 
 
 @app.route("/train", methods=["GET"])
@@ -23,4 +23,4 @@ def train():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=7860)
+    app.run(host="0.0.0.0", port=7860, debug=True)
