@@ -1,13 +1,13 @@
-from flask import Flask, send_from_directory, request, jsonify
+from flask import Flask, send_from_directory
 import subprocess, os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="logs", static_url_path="/logs")
 
 
 @app.route("/train", methods=["GET"])
 def train():
     try:
-        subprocess.call(["./train_with_log.sh"])
+        subprocess.call(["./simple_train.sh"])
         return "Bash script triggered successfully!"
     except subprocess.CalledProcessError as e:
         return f"An error occurred: {str(e)}", 500
