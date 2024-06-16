@@ -1,7 +1,10 @@
 from flask import Flask, send_from_directory
+from flask_autoindex import AutoIndex
+
 import subprocess, os
 
-app = Flask(__name__, static_folder="logs", static_url_path="/logs")
+app = Flask(__name__)
+AutoIndex(app, browse_root=os.path.curdir)
 
 
 @app.route("/train", methods=["GET"])
