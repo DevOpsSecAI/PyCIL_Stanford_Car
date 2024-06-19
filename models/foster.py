@@ -33,7 +33,28 @@ class FOSTER(BaseLearner):
     def after_task(self):
         self._known_classes = self._total_classes
         logging.info("Exemplar size: {}".format(self.exemplar_size))
+        
+    def load_checkpoint(self, filename):
+        checkpoint = torch.load(filename)
+        self._known_classes = len(checkpoint["classes"])
+        self.class_list = np.array(checkpoint["classes"])
+        self.label_list = checkpoint["label_list"]
+        self._network.update_fc(self._known_classes)
+        self._network.load_checkpoint(checkpoint["network"])
+        self._network.to(self._device)
+        self._cur_task = 0
 
+    def save_checkpoint(self, filename):
+        self._network.cpu()
+        save_dict = {
+            "classes": self.data_manager.get_class_list(self._cur_task),
+            "network": {
+                "convnet": self._network.convnets[0].state_dict(),
+                "fc": self._network.fc.state_dict()
+            },
+            "label_list": self.data_manager.get_label_list(self._cur_task),
+        }
+        torch.save(save_dict, "./{}/{}_{}.pkl".format(filename, self.args['model_name'], self._cur_task))
     def incremental_train(self, data_manager):
         self.data_manager = data_manager
         self._cur_task += 1
@@ -58,7 +79,6 @@ class FOSTER(BaseLearner):
         logging.info(
             "Trainable params: {}".format(count_parameters(self._network, True))
         )
-
         train_dataset = data_manager.get_dataset(
             np.arange(self._known_classes, self._total_classes),
             source="train",
@@ -366,7 +386,8 @@ class FOSTER(BaseLearner):
             )
         else:
             logging.info("do not weight align student!")
-
+        if self._cur_task > 1:
+            self._network = self._snet
         self._snet.eval()
         y_pred, y_true = [], []
         for _, (_, inputs, targets) in enumerate(test_loader):

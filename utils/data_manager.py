@@ -25,12 +25,17 @@ class DataManager(object):
                 if offset > 0:
                     self._increments.append(offset)
         else:
-            self._increments = class_list
+            self._increments = [max(class_list)]
             data = {
                 "path": path,
                 "class_list": class_list,
             }
             self._setup_data(dataset_name, shuffle, seed, data = data)
+            while sum(self._increments) + increment < len(self._class_order) + max(class_list):
+                self._increments.append(increment)
+                offset = len(self._class_order) - sum(self._increments) + max(class_list)
+                if offset > 0:
+                    self._increments.append(offset)
     def get_class_list(self, task):
         return self._class_order[: sum(self._increments[: task + 1])]
     def get_label_list(self, task):
@@ -43,6 +48,7 @@ class DataManager(object):
         return len(self._increments)
 
     def get_task_size(self, task):
+        print(self._increments,task)
         return self._increments[task]
 
     def get_accumulate_tasksize(self,task):
@@ -225,10 +231,9 @@ class DataManager(object):
             order = idata.class_order.tolist()
         self._class_order = order
         logging.info(self._class_order)
-
         # Map indices
         self._train_targets = _map_new_class_index(
-            self._train_targets, self._class_order
+            self._train_targets, self._class_order,
         )
         self._test_targets = _map_new_class_index(self._test_targets, self._class_order)
 
