@@ -457,6 +457,12 @@ class FOSTERNet(nn.Module):
         features = [convnet(x)["features"] for convnet in self.convnets]
         features = torch.cat(features, 1)
         return features
+    
+    def load_checkpoint(self, checkpoint):
+        if len(self.convnets) == 0:
+            self.convnets.append(get_convnet(self.args))
+        self.convnets[0].load_state_dict(checkpoint["convnet"])
+        self.fc.load_state_dict(checkpoint["fc"])
 
     def forward(self, x):
         features = [convnet(x)["features"] for convnet in self.convnets]
@@ -526,25 +532,6 @@ class FOSTERNet(nn.Module):
         gamma = meanold / meannew * (value ** (old / increment))
         logging.info("align weights, gamma = {} ".format(gamma))
         self.fc.weight.data[-increment:, :] *= gamma
-    
-    def load_checkpoint(self, args):
-        if args["init_cls"] == 50:
-            pkl_name = "{}_{}_{}_B{}_Inc{}".format( 
-                args["dataset"],
-                args["seed"],
-                args["convnet_type"],
-                0,
-                args["init_cls"],
-            )
-            checkpoint_name = f"checkpoints/finetune_{pkl_name}_0.pkl"
-        else:
-            checkpoint_name = f"checkpoints/finetune_{args['csv_name']}_0.pkl"
-        model_infos = torch.load(checkpoint_name)
-        assert len(self.convnets) == 1
-        self.convnets[0].load_state_dict(model_infos['convnet'])
-        self.fc.load_state_dict(model_infos['fc'])
-        test_acc = model_infos['test_acc']
-        return test_acc
     
 
 class BiasLayer(nn.Module):

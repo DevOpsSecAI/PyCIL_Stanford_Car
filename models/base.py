@@ -84,10 +84,10 @@ class BaseLearner(object):
 
         return ret
 
-    def eval_task(self, data=None, save_conf=False, group = 10):
+    def eval_task(self, data=None, save_conf=False, group = 10, mode = "train"):
         if data is None:
             data = self.test_loader
-        y_pred, y_true = self._eval_cnn(data)
+        y_pred, y_true = self._eval_cnn(data, mode = mode)
         cnn_accy = self._evaluate(y_pred, y_true, group = group)
 
         if hasattr(self, "_class_means"):
@@ -136,7 +136,7 @@ class BaseLearner(object):
 
         return np.around(tensor2numpy(correct) * 100 / total, decimals=2)
 
-    def _eval_cnn(self, loader):
+    def _eval_cnn(self, loader, mode = "train"):
         self._network.eval()
         y_pred, y_true = [], []
         for _, (_, inputs, targets) in enumerate(loader):
@@ -148,7 +148,10 @@ class BaseLearner(object):
             )[
                 1
             ]  # [bs, topk]
-            y_pred.append(self.class_list[predicts.cpu().numpy()])
+            refine_predicts = predicts.cpu().numpy()
+            if mode == "test":
+                refine_predicts = self.class_list[refine_predicts]
+            y_pred.append(refine_predicts)
             y_true.append(targets.cpu().numpy())
         return np.concatenate(y_pred), np.concatenate(y_true)  # [N, topk]
     def inference(self, image):

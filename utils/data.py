@@ -140,11 +140,11 @@ class GeneralDataset(iData):
         self.train_trsf = train_transform
         if self.train_trsf == None:
             self.train_trsf = [
-                transforms.Resize(224),
-                transforms.CenterCrop(224),
-                transforms.RandomHorizontalFlip(),
                 transforms.RandomAffine(25, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=8),
-                transforms.ColorJitter(),
+                transforms.RandomResizedCrop(224),
+                transforms.RandomHorizontalFlip(),
+                transforms.ColorJitter(brightness = 0.3, saturation = 0.2),
+                transforms.RandomApply([transforms.GaussianBlur(kernel_size=5, sigma=(0.5, 2.0))], p=1),  # Apply Gaussian blur with random probability
             ]
         self.test_trsf = test_transform
         if self.test_trsf == None:
@@ -162,7 +162,6 @@ class GeneralDataset(iData):
                     ),
             ]
         self.init_index = max(init_class_list) + 1
-        print("Start index:", self.init_index)
         self.class_order = np.arange(self.init_index, self.init_index + len(os.listdir(os.path.join(self.path, "train"))))
     
     def download_data(self):

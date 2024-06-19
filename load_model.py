@@ -46,12 +46,6 @@ def load_model(args):
     _set_device(args)
     model = factory.get_model(args["model_name"], args)
     model.load_checkpoint(args["checkpoint"])
-    image = Image.open("/home/phapnm/PyCIL_Stanford_Car/car_data/car_data/test/Audi 100 Sedan 1994/01893.jpg")
-    transform = transforms.Compose([
-        transforms.PILToTensor()])
-    image = transform(image)
-    predict = model.inference(torch.unsqueeze(image,0))
-    print(predict)
     return model
 def main():
     args = setup_parser().parse_args()

@@ -89,7 +89,6 @@ def split_images_labels(imgs, start_index = 0):
     for item in imgs:
         images.append(item[0])
         labels.append(item[1] + start_index)
-
     return np.array(images), np.array(labels)
 
 def save_fc(args, model):
@@ -105,7 +104,8 @@ def save_fc(args, model):
     _save_path = os.path.join(_save_dir, f"{args['csv_name']}.csv")
     with open(_save_path, "a+") as f:
         f.write(f"{args['time_str']},{args['model_name']},{_path} \n")
-
+        
+    
 def save_model(args, model):
     #used in PODNet
     _path = os.path.join(args['logfilename'], "model.pt")

@@ -12,7 +12,8 @@ import os
 import numpy as np
 import json
 import argparse
-
+import torch.multiprocessing
+torch.multiprocessing.set_sharing_strategy('file_system')
 def _set_device(args):
     device_type = args["device"]
     gpus = []
@@ -50,13 +51,14 @@ def load_model(args):
     return model
     
 def evaluate(args):
-    logs_name = "logs/{}/{}/{}/{}".format(args["model_name"],args["dataset"] + args['data'], args['init_cls'], args['increment'])
+    logs_name = "logs/{}/{}_{}/{}/{}".format(args["model_name"],args["dataset"], args['data'], args['init_cls'], args['increment'])
 
     if not os.path.exists(logs_name):
         os.makedirs(logs_name)
-    logfilename = "logs/{}/{}/{}/{}/{}_{}_{}".format(
+    logfilename = "logs/{}/{}_{}/{}/{}/{}_{}_{}".format(
         args["model_name"],
         args["dataset"],
+        args['data'],
         args['init_cls'],
         args["increment"],
         args["prefix"],
@@ -93,7 +95,7 @@ def evaluate(args):
     )
     loader = DataLoader(data_manager.get_dataset(model.class_list, source = "test", mode = "test"), batch_size=args['batch_size'], shuffle=True, num_workers=8)
     
-    cnn_acc, nme_acc = model.eval_task(loader, group = 1)
+    cnn_acc, nme_acc = model.eval_task(loader, group = 1, mode = "test")
     print(cnn_acc, nme_acc)
 def main():
     args = setup_parser().parse_args()
