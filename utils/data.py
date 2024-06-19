@@ -144,7 +144,6 @@ class GeneralDataset(iData):
                 transforms.RandomResizedCrop(224),
                 transforms.RandomHorizontalFlip(),
                 transforms.ColorJitter(brightness = 0.3, saturation = 0.2),
-                transforms.RandomApply([transforms.GaussianBlur(kernel_size=5, sigma=(0.5, 2.0))], p=1),  # Apply Gaussian blur with random probability
             ]
         self.test_trsf = test_transform
         if self.test_trsf == None:
