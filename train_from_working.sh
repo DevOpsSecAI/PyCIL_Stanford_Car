@@ -12,6 +12,5 @@ s3_path=${4:-s3://pycil.com/"$(date -u +"%Y-%m-%dT%H:%M:%SZ")"}
 
 # Run the training script with the provided or default config and data arguments
 python main.py --config "$config" --data "$data"
-
 # Run the upload script with the additional arguments
 ./upload_s3.sh "$upload_s3_arg" "$s3_path"
