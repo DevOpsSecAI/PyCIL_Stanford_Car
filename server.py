@@ -6,6 +6,7 @@ import subprocess, os
 from download_s3_path import download_s3_folder
 from split import split_files
 import os
+import shutil
 
 app = Flask(__name__)
 AutoIndex(app, browse_root=os.path.curdir)
@@ -23,6 +24,7 @@ def train():
 @app.route("/train/workings/<working_id>", methods=["GET"])
 def train_with_working_id(working_id):
     path = f"working/{str(working_id)}"
+    delete_folder(path)
     download_s3_folder(os.getenv("S3_BUCKET_NAME", "pycil.com"), path, path)
 
     data_path = path + "/data"
@@ -34,6 +36,14 @@ def train_with_working_id(working_id):
         [f"./train_from_working.sh {config_path} {data_path} {path} {output_path}"]
     )
     return f"Training started with working id {working_id}!"
+
+
+def delete_folder(folder_path):
+    if os.path.exists(folder_path):
+        shutil.rmtree(folder_path)
+        print(f"Folder '{folder_path}' has been deleted.")
+    else:
+        print(f"Folder '{folder_path}' does not exist.")
 
 
 if __name__ == "__main__":
