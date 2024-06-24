@@ -9,3 +9,4 @@ tqdm==4.66.2
 Flask
 flask_autoindex
 boto3
+scikit-learn
