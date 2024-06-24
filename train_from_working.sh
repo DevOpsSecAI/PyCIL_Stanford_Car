@@ -12,5 +12,12 @@ s3_path=${4:-s3://pycil.com/"$(date -u +"%Y-%m-%dT%H:%M:%SZ")"}
 
 # Run the training script with the provided or default config and data arguments
 python main.py --config "$config" --data "$data"
-# Run the upload script with the additional arguments
-./upload_s3.sh "$upload_s3_arg" "$s3_path"
+
+# Check if the previous command was successful
+if [ $? -eq 0 ]; then
+    # Run the upload script with the additional arguments
+    ./upload_s3.sh "$upload_s3_arg" "$s3_path"
+else
+    echo "Error: python main.py failed. Aborting upload."
+    exit 1
+fi
