@@ -8,6 +8,11 @@ def split_files(source_folder, train_ratio=0.8):
     train_folder = os.path.join(source_folder, "train")
     test_folder = os.path.join(source_folder, "test")
 
+    # Check if train and test folders already exist
+    if os.path.exists(train_folder) or os.path.exists(test_folder):
+        print("Train and/or test folder already exists. Aborting operation.")
+        return
+
     # Ensure the train and test folders exist
     try:
         os.makedirs(train_folder, exist_ok=True)
