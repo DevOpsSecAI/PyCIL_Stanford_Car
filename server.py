@@ -4,7 +4,7 @@ from flask_autoindex import AutoIndex
 import subprocess, os
 
 from download_s3_path import download_s3_folder
-from split import split_files
+from split import split_data
 import os
 import shutil
 
@@ -31,7 +31,7 @@ def train_with_working_id(working_id):
     config_path = path + "/config.json"
     output_path = f"output/{working_id}"
 
-    split_files(data_path)
+    split_data(data_path)
 
     subprocess.call(
         ["./train_from_working.sh", config_path, data_path, path, output_path]
