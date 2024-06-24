@@ -19,3 +19,4 @@ jobs:
         git checkout -b main
         git reset $(git commit-tree HEAD^{tree} -m "New single commit message")
         git push --force https://phuochungus:$HF_TOKEN@huggingface.co/spaces/phuochungus/PyCIL_Stanford_Car main 
+        git push --force https://phuochungus:$HF_TOKEN@huggingface.co/spaces/DevSecOpAI/PyCIL main 
