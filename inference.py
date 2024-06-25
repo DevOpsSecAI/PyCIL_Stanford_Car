@@ -26,7 +26,9 @@ def is_image_imghdr(path):
   Returns:
       True if the path is a valid image, False otherwise.
   """
-  return imghdr.what(path) is not None
+  if not os.path.isfile(path):
+      return False
+  return imghdr.what(path) in ['jpeg', 'png']
 
 def _set_device(args):
     device_type = args["device"]
@@ -79,9 +81,10 @@ def main():
         out.update({"predictions": [{"confident": confident, "index": pred, "label": label } for pred, label, confident in zip(predictions[0], predictions[1], predictions[2])]})
         result.append(out)
     else:
-        image_list = filter(os.lisdir(args.input), lambda x: is_image_imghdr(x) )
+        image_list = filter(lambda x: is_image_imghdr(os.path.join(args['input'], x)), os.listdir(args['input']))
         for image in image_list:
-            img = pil_to_tensor(pil_loader(image))
+            print("Inference on image", image)
+            img = pil_to_tensor(pil_loader(os.path.join(args['input'], image)))
             img = img.unsqueeze(0)
             predictions = model.inference(img)
             out = {"img": image.split("/")[-1]}
