@@ -1,9 +1,9 @@
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, request
 from flask_autoindex import AutoIndex
-
 import subprocess, os
 
 from download_s3_path import download_s3_folder
+from download_file_from_s3 import download_file_from_s3
 from split import split_data
 import os
 import shutil
@@ -38,6 +38,33 @@ def train_with_working_id(working_id):
     )
 
     return f"Training started with working id {working_id}!"
+
+
+@app.route("/inference", methods=["POST"])
+def infernece():
+    file = request.files["image"]
+    file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+    input_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+    config_path = request.form["config_path"]
+    checkpoint_path = request.form["checkpoint_path"]
+
+    download_file_from_s3("pycil.com", config_path, "config.json")
+    download_file_from_s3("pycil.com", checkpoint_path, "checkpoint.pkl")
+    subprocess.call(
+        [
+            "python",
+            "inference.py",
+            "--config",
+            "config.json",
+            "--checkpoint",
+            "checkpoint.pkl",
+            "--input",
+            input_path,
+            "--output",
+            "output",
+        ]
+    )
 
 
 def delete_folder(folder_path):
