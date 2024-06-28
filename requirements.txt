@@ -8,3 +8,5 @@ scipy==1.3.3
 tqdm==4.66.2
 Flask
 flask_autoindex
+boto3
+scikit-learn
