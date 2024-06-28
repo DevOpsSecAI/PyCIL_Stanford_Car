@@ -3,12 +3,13 @@ from flask_autoindex import AutoIndex
 import subprocess, os
 
 from download_s3_path import download_s3_folder
-from download_file_from_s3 import download_file_from_s3
+from download_file_from_s3 import download_from_s3
 from split import split_data
 import os
 import shutil
 
 app = Flask(__name__)
+app.config["UPLOAD_FOLDER"] = "upload"
 AutoIndex(app, browse_root=os.path.curdir)
 
 
@@ -43,14 +44,14 @@ def train_with_working_id(working_id):
 @app.route("/inference", methods=["POST"])
 def infernece():
     file = request.files["image"]
-    file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+    file.save(os.path.join(app.config["UPLOAD_FOLDER"], file.filename))
 
-    input_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+    input_path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
     config_path = request.form["config_path"]
     checkpoint_path = request.form["checkpoint_path"]
 
-    download_file_from_s3("pycil.com", config_path, "config.json")
-    download_file_from_s3("pycil.com", checkpoint_path, "checkpoint.pkl")
+    download_from_s3("pycil.com", config_path, "config.json")
+    download_from_s3("pycil.com", checkpoint_path, "checkpoint.pkl")
     subprocess.call(
         [
             "python",
