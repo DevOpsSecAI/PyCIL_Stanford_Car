@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory, request
+from flask import Flask, send_from_directory, request, send_file
 from flask_autoindex import AutoIndex
 import subprocess, os
 
@@ -63,9 +63,10 @@ def infernece():
             "--input",
             input_path,
             "--output",
-            "output",
+            "output.json",
         ]
     )
+    return send_file("output.json")
 
 
 def delete_folder(folder_path):
