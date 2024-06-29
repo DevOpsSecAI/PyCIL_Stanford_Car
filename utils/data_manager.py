@@ -31,24 +31,23 @@ class DataManager(object):
                 "class_list": class_list,
             }
             self._setup_data(dataset_name, shuffle, seed, data = data)
-            while sum(self._increments) + increment < len(self._class_order) + max(class_list):
+            while sum(self._increments) + increment < len(self._class_order):
                 self._increments.append(increment)
-                offset = len(self._class_order) - sum(self._increments) + max(class_list)
-                if offset > 0:
-                    self._increments.append(offset)
+            offset = len(self._class_order) - sum(self._increments) - 1
+            if offset > 0:
+                self._increments.append(offset)
     def get_class_list(self, task):
         return self._class_order[: sum(self._increments[: task + 1])]
     def get_label_list(self, task):
         cls_list = self.get_class_list(task)
         start_index = max(self.init_class_list) + 1
-        result = {i + start_index:self.label_list[i] for i in cls_list}
+        result = {i:self.label_list[i] for i in cls_list}
         return result
     @property
     def nb_tasks(self):
         return len(self._increments)
 
     def get_task_size(self, task):
-        print(self._increments,task)
         return self._increments[task]
 
     def get_accumulate_tasksize(self,task):
@@ -101,7 +100,6 @@ class DataManager(object):
             targets.append(appendent_targets)
 
         data, targets = np.concatenate(data), np.concatenate(targets)
-
         if ret_data:
             return data, targets, DummyDataset(data, targets, trsf, self.use_path)
         else:
@@ -212,7 +210,6 @@ class DataManager(object):
     def _setup_data(self, dataset_name, shuffle, seed, data = None):
         idata = _get_idata(dataset_name, data = data)
         self.label_list = idata.download_data()
-
         # Data
         self._train_data, self._train_targets = idata.train_data, idata.train_targets
         self._test_data, self._test_targets = idata.test_data, idata.test_targets
@@ -229,7 +226,10 @@ class DataManager(object):
             order = np.random.permutation(order).tolist()
         else:
             order = idata.class_order.tolist()
-        self._class_order = order
+        if data['class_list'][0] != -1:
+            self._class_order = np.concatenate((np.array(data['class_list']), order)).tolist()
+        else:
+            self._class_order = order
         logging.info(self._class_order)
         # Map indices
         self._train_targets = _map_new_class_index(
@@ -239,7 +239,6 @@ class DataManager(object):
 
     def _select(self, x, y, low_range, high_range):
         idxes = np.where(np.logical_and(y >= low_range, y < high_range))[0]
-
         if isinstance(x,np.ndarray):
             x_return = x[idxes]
         else:

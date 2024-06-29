@@ -72,8 +72,11 @@ def _train(args):
         args["increment"],
         path = args["data"],
     )
-    
-    cnn_curve, nme_curve = {"top1": [], "top5": []}, {"top1": [], "top5": []}
+    if data_manager.get_task_size(0) < 5:
+        top_string = "top{}".format(data_manager.get_task_size(0))
+    else:
+        top_string = "top5"
+    cnn_curve, nme_curve = {"top1": [], top_string: []}, {"top1": [], top_string: []}
     cnn_matrix, nme_matrix = [], []
 
     for task in range(data_manager.nb_tasks):
@@ -102,15 +105,15 @@ def _train(args):
 
 
             cnn_curve["top1"].append(cnn_accy["top1"])
-            cnn_curve["top5"].append(cnn_accy["top5"])
+            cnn_curve[top_string].append(cnn_accy["top{}".format(model.topk)])
 
             nme_curve["top1"].append(nme_accy["top1"])
-            nme_curve["top5"].append(nme_accy["top5"])
+            nme_curve[top_string].append(nme_accy["top{}".format(model.topk)])
 
             logging.info("CNN top1 curve: {}".format(cnn_curve["top1"]))
-            logging.info("CNN top5 curve: {}".format(cnn_curve["top5"]))
+            logging.info("CNN top5 curve: {}".format(cnn_curve[top_string]))
             logging.info("NME top1 curve: {}".format(nme_curve["top1"]))
-            logging.info("NME top5 curve: {}\n".format(nme_curve["top5"]))
+            logging.info("NME top5 curve: {}\n".format(nme_curve[top_string]))
 
             print('Average Accuracy (CNN):', sum(cnn_curve["top1"])/len(cnn_curve["top1"]))
             print('Average Accuracy (NME):', sum(nme_curve["top1"])/len(nme_curve["top1"]))
@@ -127,10 +130,10 @@ def _train(args):
             cnn_matrix.append(cnn_values)
 
             cnn_curve["top1"].append(cnn_accy["top1"])
-            cnn_curve["top5"].append(cnn_accy["top5"])
+            cnn_curve[top_string].append(cnn_accy["top{}".format(model.topk)])
 
             logging.info("CNN top1 curve: {}".format(cnn_curve["top1"]))
-            logging.info("CNN top5 curve: {}\n".format(cnn_curve["top5"]))
+            logging.info("CNN top5 curve: {}\n".format(cnn_curve[top_string]))
 
             print('Average Accuracy (CNN):', sum(cnn_curve["top1"])/len(cnn_curve["top1"]))
             logging.info("Average Accuracy (CNN): {}".format(sum(cnn_curve["top1"])/len(cnn_curve["top1"])))

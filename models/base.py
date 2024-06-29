@@ -52,7 +52,7 @@ class BaseLearner(object):
         else:
             return self._network.feature_dim
 
-    def build_rehearsal_memory(self, data_manager, per_class):
+    def build_rehearsal_memory(self, data_manager, per_class, ):
         if self._fixed_memory:
             self._construct_exemplar_unified(data_manager, per_class)
         else:
@@ -143,6 +143,8 @@ class BaseLearner(object):
             inputs = inputs.to(self._device)
             with torch.no_grad():
                 outputs = self._network(inputs)["logits"]
+            if self.topk > self._total_classes:
+                self.topk = self._total_classes
             predicts = torch.topk(
                 outputs, k=self.topk, dim=1, largest=True, sorted=True
             )[
@@ -160,17 +162,26 @@ class BaseLearner(object):
         image = image.to(self._device, dtype=torch.float32)
         with torch.no_grad():
             output = self._network(image)["logits"]
-            print("Logits: ", output)
+            if self.topk > self._total_classes:
+                self.topk = self._total_classes
             predict = torch.topk(
                 output, k=self.topk, dim=1, largest=True, sorted=True
             )[1]
-        print("TopK number: ", self.topk)
+            confidents = softmax(output.cpu().numpy())
         if self.class_list is not None:
             self.class_list = np.array(self.class_list)
-            return self.class_list[predict.cpu().numpy()]
+            predicts = predict.cpu().numpy()
+            result = self.class_list[predicts].tolist()
+            #result = predicts.tolist()
+            result.append([self.label_list[item] for item in result[0]])
+            result.append(confidents[0][predicts][0].tolist())
+            return result
         elif self.data_manager is not None:
             return self.data_manager.class_list[predict.cpu().numpy()]
+
+        predicts.append([self.label_list[index] for index in predicts[0]])
         return predicts
+      
     def _eval_nme(self, loader, class_means):
         self._network.eval()
         vectors, y_true = self._extract_vectors(loader)
@@ -197,7 +208,6 @@ class BaseLearner(object):
 
             vectors.append(_vectors)
             targets.append(_targets)
-
         return np.concatenate(vectors), np.concatenate(targets)
 
     def _reduce_exemplar(self, data_manager, m):
@@ -405,3 +415,7 @@ class BaseLearner(object):
             _class_means[class_idx, :] = mean
 
         self._class_means = _class_means
+def softmax(x):
+    """Compute softmax values for each sets of scores in x."""
+    e_x = np.exp(x - np.max(x))
+    return e_x / (e_x.sum(axis=0) + 1e-7) # only difference

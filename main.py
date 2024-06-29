@@ -13,6 +13,7 @@ def main():
     else:
         assert args['data'] != None
         if not args['checkpoint']:
+            args.pop('checkpoint')
             train(args)
         else:
             train_more(args)
