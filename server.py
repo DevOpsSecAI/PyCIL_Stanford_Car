@@ -42,7 +42,11 @@ def train_with_working_id(working_id):
         return "Data is not provided", 400
 
     output_model_path = "models/{}/{}_{}/{}/{}".format(
-        args["model_name"], args["dataset"], args["data"], init_cls, args["increment"]
+        args["model_name"],
+        args["dataset"],
+        args["data"],
+        args["init_cls"],
+        args["increment"],
     )
     split_data(data_path)
 
