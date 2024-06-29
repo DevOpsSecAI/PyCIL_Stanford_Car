@@ -24,7 +24,7 @@ def train():
 
 @app.route("/train/workings/<working_id>", methods=["GET"])
 def train_with_working_id(working_id):
-    path = f"working/{str(working_id)}"
+    path = f"models"
     delete_folder(path)
     download_s3_folder(os.getenv("S3_BUCKET_NAME", "pycil.com"), path, path)
 
