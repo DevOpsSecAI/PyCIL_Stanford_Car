@@ -143,6 +143,8 @@ class BaseLearner(object):
             inputs = inputs.to(self._device)
             with torch.no_grad():
                 outputs = self._network(inputs)["logits"]
+            if self.topk > self._known_classes:
+                self.topk = self._known_classes
             predicts = torch.topk(
                 outputs, k=self.topk, dim=1, largest=True, sorted=True
             )[
@@ -160,6 +162,8 @@ class BaseLearner(object):
         image = image.to(self._device, dtype=torch.float32)
         with torch.no_grad():
             output = self._network(image)["logits"]
+            if self.topk > self._known_classes:
+                self.topk = self._known_classes
             predict = torch.topk(
                 output, k=self.topk, dim=1, largest=True, sorted=True
             )[1]
