@@ -16,7 +16,7 @@ AutoIndex(app, browse_root=os.path.curdir)
 @app.route("/train", methods=["GET"])
 def train():
     try:
-        subprocess.call(["./simple_train.sh"])
+        subprocess.Popen(["./simple_train.sh"])
         return "Bash script triggered successfully!"
     except subprocess.CalledProcessError as e:
         return f"An error occurred: {str(e)}", 500
@@ -30,11 +30,11 @@ def train_with_working_id(working_id):
 
     data_path = path + "/data"
     config_path = path + "/config.json"
-    output_path = f"output/{working_id}"
+    output_path = f"s3://pycil.com/output/{working_id}"
 
     split_data(data_path)
 
-    subprocess.call(
+    subprocess.Popen(
         ["./train_from_working.sh", config_path, data_path, path, output_path]
     )
 
