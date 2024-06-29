@@ -57,6 +57,8 @@ class FOSTER(BaseLearner):
         torch.save(save_dict, "./{}/{}_{}.pkl".format(filename, self.args['model_name'], self._cur_task))
     def incremental_train(self, data_manager):
         self.data_manager = data_manager
+        if hasattr(self.data_manager,'label_list') and hasattr(self,'label_list'):
+            self.data_manager.label_list = list(self.label_list.values()) + self.data_manager.label_list
         self._cur_task += 1
         if self._cur_task > 1:
             self._network = self._snet
@@ -85,6 +87,7 @@ class FOSTER(BaseLearner):
             mode="train",
             appendent=self._get_memory(),
         )
+        
         self.train_loader = DataLoader(
             train_dataset,
             batch_size=self.args["batch_size"],
@@ -105,7 +108,7 @@ class FOSTER(BaseLearner):
         if len(self._multiple_gpus) > 1:
             self._network = nn.DataParallel(self._network, self._multiple_gpus)
         self._train(self.train_loader, self.test_loader)
-        self.build_rehearsal_memory(data_manager, self.samples_per_class)
+        #self.build_rehearsal_memory(data_manager, self.samples_per_class)
         if len(self._multiple_gpus) > 1:
             self._network = self._network.module
 
@@ -131,12 +134,10 @@ class FOSTER(BaseLearner):
             )
             self._init_train(train_loader, test_loader, optimizer, scheduler)
         else:
-
             cls_num_list = [self.samples_old_class] * self._known_classes + [
                 self.samples_new_class(i)
                 for i in range(self._known_classes, self._total_classes)
             ]
-
             effective_num = 1.0 - np.power(self.beta1, cls_num_list)
             per_cls_weights = (1.0 - self.beta1) / np.array(effective_num)
             per_cls_weights = (
