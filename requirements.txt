@@ -10,3 +10,4 @@ Flask
 flask_autoindex
 boto3
 scikit-learn
+python-dotenv

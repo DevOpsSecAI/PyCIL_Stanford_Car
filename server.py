@@ -8,6 +8,7 @@ from split import split_data
 import os
 import shutil
 import json
+import time
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "upload"
@@ -33,21 +34,6 @@ def train_with_working_id(working_id):
     config_path = path + "/config.json"
     output_path = f"s3://pycil.com/output/{working_id}"
 
-    f = open(config_path, "r")
-    args = json.load(f)
-
-    args["data"] = request.args.get("data")
-
-    if args["data"] is None:
-        return "Data is not provided", 400
-
-    output_model_path = "models/{}/{}_{}/{}/{}".format(
-        args["model_name"],
-        args["dataset"],
-        args["data"],
-        args["init_cls"],
-        args["increment"],
-    )
     split_data(data_path)
 
     subprocess.Popen(
@@ -55,8 +41,8 @@ def train_with_working_id(working_id):
             "./train_from_working.sh",
             config_path,
             data_path,
-            output_model_path,
-            f"s3://pycil.com/{path}",
+            "models",
+            f"s3://pycil.com/output/{working_id}/{int(time.time())}",
         ]
     )
 
