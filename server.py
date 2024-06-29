@@ -24,7 +24,7 @@ def train():
 
 @app.route("/train/workings/<working_id>", methods=["GET"])
 def train_with_working_id(working_id):
-    path = f"models"
+    path = f"working/{working_id}"
     delete_folder(path)
     download_s3_folder(os.getenv("S3_BUCKET_NAME", "pycil.com"), path, path)
 
@@ -32,10 +32,21 @@ def train_with_working_id(working_id):
     config_path = path + "/config.json"
     output_path = f"s3://pycil.com/output/{working_id}"
 
+    f = open(config_path, "r")
+    args = json.load(f)
+    output_model_path = "models/{}/{}_{}/{}/{}".format(
+        args["model_name"], args["dataset"], args["data"], init_cls, args["increment"]
+    )
     split_data(data_path)
 
     subprocess.Popen(
-        ["./train_from_working.sh", config_path, data_path, path, output_path]
+        [
+            "./train_from_working.sh",
+            config_path,
+            data_path,
+            output_model_path,
+            f"s3://pycil.com/{path}",
+        ]
     )
 
     return f"Training started with working id {working_id}!"
