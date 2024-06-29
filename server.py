@@ -7,6 +7,7 @@ from download_file_from_s3 import download_from_s3
 from split import split_data
 import os
 import shutil
+import json
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "upload"
