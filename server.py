@@ -35,6 +35,12 @@ def train_with_working_id(working_id):
 
     f = open(config_path, "r")
     args = json.load(f)
+
+    args["data"] = request.args.get("data")
+
+    if args["data"] is None:
+        return "Data is not provided", 400
+
     output_model_path = "models/{}/{}_{}/{}/{}".format(
         args["model_name"], args["dataset"], args["data"], init_cls, args["increment"]
     )
